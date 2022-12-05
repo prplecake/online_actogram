@@ -1,23 +1,20 @@
-import os
-import sys
-import sqlite3
 import argparse
+import glob
+import os
+import sqlite3
+import sys
+from datetime import datetime as dt
+from datetime import timedelta
+from itertools import groupby
 from shutil import copy, rmtree
 
-import glob
-import numpy as np
-import pandas as pd
-
-from itertools import groupby
-from scipy.ndimage import median_filter
-
-from datetime import timedelta
-from datetime import datetime as dt
-
-import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.gridspec as gridspec
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 from matplotlib.ticker import FormatStrFormatter
+from scipy.ndimage import median_filter
 
 plt.close('all')
 plt.style.use('default')
@@ -133,10 +130,10 @@ class Actography:
                 print('Sorry, having trouble with your operating system.')
                 sys.exit()
 
-            self.history_loc_dict = {'safari':   [safari_src, 'History.db'],
-                                     'chrome':   [chrome_src, 'History'],
-                                     'firefox':  [firefox_src, 'places.sqlite'],
-                                     'edge':     [edge_src, 'History']
+            self.history_loc_dict = {'safari': [safari_src, 'History.db'],
+                                     'chrome': [chrome_src, 'History'],
+                                     'firefox': [firefox_src, 'places.sqlite'],
+                                     'edge': [edge_src, 'History']
                                      }
 
         def copy_history_to_temp_folder(self):
