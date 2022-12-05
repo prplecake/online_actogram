@@ -20,10 +20,11 @@ import matplotlib.dates as mdates
 import matplotlib.gridspec as gridspec
 from matplotlib.ticker import FormatStrFormatter
 
-
-plt.close('all'); plt.style.use('default')
+plt.close('all')
+plt.style.use('default')
 for tick in ['xtick.minor.visible', 'ytick.minor.visible']:
     plt.rcParams[tick] = False
+
 
 class Actography:
 
@@ -40,10 +41,10 @@ class Actography:
         self.landscape = args.landscape
         self.printer_friendly = args.printer_friendly
 
-        self.zz = None # wakefulness
-        self.dd = None # day range
-        self.h1 = None # 24 hour range
-        self.h2 = None # 48 hour range
+        self.zz = None  # wakefulness
+        self.dd = None  # day range
+        self.h1 = None  # 24 hour range
+        self.h2 = None  # 48 hour range
 
         self.act = None
         self.pdf = None
@@ -51,23 +52,26 @@ class Actography:
 
         self.sleeps = []
 
-        self.df = pd.DataFrame() # activity dataframe (each row === site visit)
-        self.binned_df = pd.DataFrame() # df binned by interval (e.g. 15 min)
+        self.df = pd.DataFrame()  # activity dataframe (each row === site visit)
+        self.binned_df = pd.DataFrame()  # df binned by interval (e.g. 15 min)
 
-        self.freq_intv = float(self.freq[:-1])/60
-        self.freq_no = int(24*60/float(self.freq[:-1]))
+        self.freq_intv = float(self.freq[:-1]) / 60
+        self.freq_no = int(24 * 60 / float(self.freq[:-1]))
 
         self.h1 = np.linspace(0, 24, self.freq_no, endpoint=False)
-        self.h2 = np.linspace(0, 48, 2*self.freq_no, endpoint=False)
+        self.h2 = np.linspace(0, 48, 2 * self.freq_no, endpoint=False)
 
         self.end = dt.combine(dt.today() - timedelta(days=1), dt.max.time())
 
         # TODO fix this to query intelligently (i.e., ignore 5% of early days
         # if they are isolated from rest, use a cutoff like 90% of data
 
-        if args.start == 'available': self.start = dt.fromisoformat('2000-01-01 00:00:00')
-        elif args.start is not None: self.start = dt.fromisoformat(args.start)
-        else: self.start = dt.fromisoformat('2000-01-01 00:00:00')
+        if args.start == 'available':
+            self.start = dt.fromisoformat('2000-01-01 00:00:00')
+        elif args.start is not None:
+            self.start = dt.fromisoformat(args.start)
+        else:
+            self.start = dt.fromisoformat('2000-01-01 00:00:00')
 
     def __call__(self):
 
@@ -99,32 +103,32 @@ class Actography:
             self.delete_temporary_history_folder()
 
         def lookup_history_filepaths(self):
-                """ check which OS user is running script from, then 
+            """ check which OS user is running script from, then
                 check typical file paths for popular browser history files """
 
-                home = os.path.expanduser("~")
+            home = os.path.expanduser("~")
 
-                if sys.platform == "darwin":  # Darwin == OSX
-                    safari_src = os.path.join(home, 'Library/Safari/History.db')
-                    chrome_src = os.path.join(home, 'Library/Application Support/Google/Chrome/Default/History')
-                    firefox_src = None # TODO
-                    edge_src = None # TODO
+            if sys.platform == "darwin":  # Darwin == OSX
+                safari_src = os.path.join(home, 'Library/Safari/History.db')
+                chrome_src = os.path.join(home, 'Library/Application Support/Google/Chrome/Default/History')
+                firefox_src = None  # TODO
+                edge_src = None  # TODO
 
-                elif sys.platform == "win32":
-                    safari_src = None
-                    chrome_src = home + '/AppData/Local/Google/Chrome/User Data/Default/History'
-                    firefox_src = None # TODO
-                    edge_src = None # TODO
+            elif sys.platform == "win32":
+                safari_src = None
+                chrome_src = home + '/AppData/Local/Google/Chrome/User Data/Default/History'
+                firefox_src = None  # TODO
+                edge_src = None  # TODO
 
-                else:
-                    print('Sorry, having trouble with your operating system.')
-                    sys.exit()
+            else:
+                print('Sorry, having trouble with your operating system.')
+                sys.exit()
 
-                self.history_loc_dict = {'safari':   [safari_src, 'History.db'],
-                                         'chrome':   [chrome_src, 'History'],
-                                         'firefox':  [firefox_src, 'History'],
-                                         'edge':     [edge_src, 'History']
-                                         }
+            self.history_loc_dict = {'safari': [safari_src, 'History.db'],
+                                     'chrome': [chrome_src, 'History'],
+                                     'firefox': [firefox_src, 'History'],
+                                     'edge': [edge_src, 'History']
+                                     }
 
         def copy_history_to_temp_folder(self):
             """ Iterate through each file referenced in the history_loc_dict 
@@ -137,8 +141,8 @@ class Actography:
                 if src is not None:
                     self.copy_history_func(src, fname)
 
-
-        def copy_history_func(self, src, fname, dst_folder='temp_history'):
+        @staticmethod
+        def copy_history_func(src, fname, dst_folder='temp_history'):
             """ function to copy file at given file location to temporary folder"""
 
             os.makedirs(dst_folder, exist_ok=True)
@@ -184,7 +188,8 @@ class Actography:
                     df = self._import_history_func(src, command_str)
                     self.act.df = pd.concat([self.act.df, df])
 
-        def delete_temporary_history_folder(self):
+        @staticmethod
+        def delete_temporary_history_folder():
             """ Delete the temporary folder after files are copied into working 
             memory. No need to cache this temporary folder, unless looking to backup
             browser history data (in which case there are better alternatives) """
@@ -192,7 +197,8 @@ class Actography:
             if os.path.isdir('temp_history'):
                 rmtree('temp_history')
 
-        def _import_history_func(self, file_name, command_str):
+        @staticmethod
+        def _import_history_func(file_name, command_str):
             """ Function to open SQL styled history files and convert to a pandas
             DataFrame type. SQL objects are closed after copying to Pandas DF. """
 
@@ -225,7 +231,7 @@ class Actography:
 
             self.aggregate_visits_by_freq()
             self.pre_allocate_binned_df()
-            self.clip_date_range() # TODO make timezone aware, add option for visualizing in either current tz or selected tz
+            self.clip_date_range()  # TODO make timezone aware, add option for visualizing in either current tz or selected tz
 
             self.init_pcolormesh_args()
             self.apply_median_blurring()
@@ -252,7 +258,6 @@ class Actography:
             self.df = pd.DataFrame({'visits': np.ones(len(visits))}, index=visits)
             self.df = self.df.resample(self.act.freq).agg({'visits': 'sum'})
             self.df = self.df.fillna(0)
-
 
         def pre_allocate_binned_df(self):
 
@@ -284,7 +289,8 @@ class Actography:
 
             first_visit = self.df.ne(0).idxmax()[0]
             dt_first_visit = dt.combine(first_visit, dt.min.time())
-            if self.act.start <= dt_first_visit: self.act_start = dt_first_visit
+            if self.act.start <= dt_first_visit:
+                self.act_start = dt_first_visit
 
             bdf = self.binned_df
             bdf = bdf.fillna(0)
@@ -305,16 +311,18 @@ class Actography:
                         'y': None,
                         'z': act_z.astype(int)}
 
-
         def apply_median_blurring(self):
             """ apply blurring process to smooth out time away from the internet 
             at the daily level or one-off periods at the day-to-day level"""
 
             zz = self.pcm['z']
 
-            if self.act.hblur: zz = median_filter(zz, size=(self.act.hblur, 1))
-            if self.act.dblur: zz = median_filter(zz, size=(1, self.act.dblur))
-            if self.act.norm:  zz = (zz>=1)
+            if self.act.hblur:
+                zz = median_filter(zz, size=(self.act.hblur, 1))
+            if self.act.dblur:
+                zz = median_filter(zz, size=(1, self.act.dblur))
+            if self.act.norm:
+                zz = (zz >= 1)
 
             self.pcm['z'] = zz.astype(float)
 
@@ -333,22 +341,22 @@ class Actography:
 
             dt = self.act.freq_intv
 
-            ax_pdf = 0^self.act.landscape
-            ax_ts = 1^self.act.landscape
+            ax_pdf = 0 ^ self.act.landscape
+            ax_ts = 1 ^ self.act.landscape
 
             zz = self.pcm['z']
 
             _ = lambda x: pd.Series(x).rolling(window=7, min_periods=0).mean()
-            offline_avg = _(24 - np.nansum(zz * dt/2, axis=ax_ts))
+            offline_avg = _(24 - np.nansum(zz * dt / 2, axis=ax_ts))
             sleeps_avg = _(self.act.sleeps)
 
-            #days = pd.date_range(self.act.dd[0], self.act.dd[-1])
-            #pdf = np.pad(pdf, (2,1), mode='edge')
-            #offline_avg = np.pad(offline_avg, (1,2), mode='edge')
-            #sleeps_avg = np.pad(sleeps_avg, (1,2), mode='edge')
+            # days = pd.date_range(self.act.dd[0], self.act.dd[-1])
+            # pdf = np.pad(pdf, (2,1), mode='edge')
+            # offline_avg = np.pad(offline_avg, (1,2), mode='edge')
+            # sleeps_avg = np.pad(sleeps_avg, (1,2), mode='edge')
 
             self.act.timeshare = [offline_avg, sleeps_avg]
-            self.act.pdf = (lambda x: x/x.max())(np.nansum(zz, axis=ax_pdf))
+            self.act.pdf = (lambda x: x / x.max())(np.nansum(zz, axis=ax_pdf))
 
         def pass_processed_data(self):
 
@@ -372,18 +380,15 @@ class Actography:
             to estimate longest real-time duration spent offline in date range
             """
             temp = self.binned_df
-            #xx, yy, zz = self.pcm
+            # xx, yy, zz = self.pcm
             days, awake = temp['x'], (temp['z'] > 0).values.astype(int)
 
             adhoc = pd.DataFrame(np.array([days, awake]).T, columns=['days', 'awake'])
 
             for idx, (_, v) in enumerate(list(adhoc.groupby('days')['awake'])):
-                screen_breaks = [sum(not(i) for i in g) for _, g in groupby(v)]
+                screen_breaks = [sum(not i for i in g) for _, g in groupby(v)]
                 longest_break = np.array(screen_breaks).max() * self.act.freq_intv
                 self.act.sleeps.append(longest_break)
-
-
-
 
     class PlotData:
 
@@ -397,12 +402,13 @@ class Actography:
             self.friendly = self.act.printer_friendly
 
             self.DPI = 450
-            self.figsize = (8,6) if self.landscape else (7,8)
+            self.figsize = (8, 6) if self.landscape else (7, 8)
 
-            self.px_size = tuple(map(lambda x: x*self.DPI, self.figsize))
+            self.px_size = tuple(map(lambda x: x * self.DPI, self.figsize))
 
-            self.lw = 1/(len(self.act.h1))
-            if len(self.act.h1) > 24*5: self.lw = 0
+            self.lw = 1 / (len(self.act.h1))
+            if len(self.act.h1) > 24 * 5:
+                self.lw = 0
 
             horizontal = {'figsize': self.figsize,
 
@@ -410,10 +416,10 @@ class Actography:
                           'labels': ['Activity PDF', 'Time Offline (h)'],
                           'hratio': [1, 0.15], 'wratio': [0.1, 1],
 
-                          'left':   0.1, 'right':  0.95,
-                          'bottom': 0.05, 'top':    0.85,
+                          'left': 0.1, 'right': 0.95,
+                          'bottom': 0.05, 'top': 0.85,
                           'wspace': 0.12, 'hspace': 0.2,
-                        }
+                          }
 
             vertical = {'figsize': self.figsize,
 
@@ -422,15 +428,14 @@ class Actography:
 
                         'hratio': [1, 0.1], 'wratio': [0.2, 1],
 
-                        'left':   0.10, 'right':  0.85,
-                        'bottom': 0.05, 'top':    0.85,
+                        'left': 0.10, 'right': 0.85,
+                        'bottom': 0.05, 'top': 0.85,
                         'wspace': 0.22, 'hspace': 0.12,
                         }
 
             self.plot_params = horizontal if self.landscape else vertical
 
             self.__main__()
-
 
         def __main__(self):
 
@@ -446,8 +451,8 @@ class Actography:
                                 wspace=p['wspace'], hspace=p['hspace'])
 
             spec = gridspec.GridSpec(ncols=2, nrows=2,
-                                     height_ratios = p['hratio'],
-                                     width_ratios= p['wratio'])
+                                     height_ratios=p['hratio'],
+                                     width_ratios=p['wratio'])
             fig_ax.axis('off')
 
             ax_actogram = fig.add_subplot(spec[0, 1])
@@ -462,14 +467,13 @@ class Actography:
 
             return fig
 
-
         def subplot_the_actogram(self, ax):
 
             cmap = 'binary' if self.friendly else 'binary_r'
 
-            lbl = lambda _: '0h' if not _%24 else ''.join('0'+str(_%24))[-2:]
+            lbl = lambda _: '0h' if not _ % 24 else ''.join('0' + str(_ % 24))[-2:]
 
-            xx, yy, zz = [_ for k,_ in self.act.act.items()]
+            xx, yy, zz = [_ for k, _ in self.act.act.items()]
 
             ax.pcolormesh(xx, yy, zz,
                           shading='auto', cmap=cmap, vmin=0,
@@ -504,7 +508,6 @@ class Actography:
 
             return ax
 
-
         def subplot_the_pdf(self, ax, ref_ax):
 
             x = self.act.h2
@@ -512,7 +515,7 @@ class Actography:
 
             if self.landscape:
 
-                ax.fill_betweenx(x, pdf, color='grey', alpha=0.3,lw=0,step='mid')
+                ax.fill_betweenx(x, pdf, color='grey', alpha=0.3, lw=0, step='mid')
 
                 ax.spines['top'].set_visible(False)
                 ax.spines['left'].set_visible(False)
@@ -531,7 +534,7 @@ class Actography:
 
             else:
 
-                ax.fill_between(x, pdf, color='grey', alpha=0.3,lw=0,step='mid')
+                ax.fill_between(x, pdf, color='grey', alpha=0.3, lw=0, step='mid')
 
                 ax.spines['right'].set_visible(False)
                 ax.spines['bottom'].set_visible(False)
@@ -547,11 +550,9 @@ class Actography:
                 ax.set_xticks(ref_ax.get_xticks())
                 ax.set_xlim(ref_ax.get_xlim())
 
-
                 ax.invert_yaxis()
 
             return ax
-
 
         def subplot_the_timeshare(self, ax, ref_ax):
 
@@ -584,7 +585,7 @@ class Actography:
                 ax.fill_betweenx(x, y2, color='k', alpha=0.5, lw=0, step='mid')
 
                 ax.axes.axvline(8, color='k', linestyle='--', lw=0.75)
-    
+
                 ax.spines['left'].set_visible(False)
                 ax.spines['top'].set_visible(False)
 
@@ -604,26 +605,26 @@ class Actography:
 
             p = self.plot_params
 
-            increments =int(60/(self.freq_no/(24)))
+            increments = int(60 / (self.freq_no / (24)))
 
             if self.landscape:
-                ax.text(1, 1+p['hspace']/2, p['labels'][0], ha='right')
+                ax.text(1, 1 + p['hspace'] / 2, p['labels'][0], ha='right')
                 ax.text(1, p['hspace'], p['labels'][1], ha='right')
 
                 s = ("Approximate sleep-wake periods, generated from time stamped "
-                    "internet browser searches\nbetween {:%d-%b-%Y} and {:%d-%b-%Y}. "
-                    "Increments of {} minutes.".format(self.act.dd[0], self.act.dd[-1], increments))
+                     "internet browser searches\nbetween {:%d-%b-%Y} and {:%d-%b-%Y}. "
+                     "Increments of {} minutes.".format(self.act.dd[0], self.act.dd[-1], increments))
 
             else:
-                ax.text(1, 1-p['hspace'], p['labels'][0], ha='right')
-                ax.text(1, p['hspace']/2, p['labels'][1], ha='right')
+                ax.text(1, 1 - p['hspace'], p['labels'][0], ha='right')
+                ax.text(1, p['hspace'] / 2, p['labels'][1], ha='right')
 
                 s = ("Approximate sleep-wake periods, generated from time stamped "
-                    "internet browser searches between {:%d-%b-%Y} and {:%d-%b-%Y}. "
-                    "Increments of {} minutes.".format(self.act.dd[0], self.act.dd[-1], increments))
+                     "internet browser searches between {:%d-%b-%Y} and {:%d-%b-%Y}. "
+                     "Increments of {} minutes.".format(self.act.dd[0], self.act.dd[-1], increments))
 
             fig_ax.text(x=0, y=1.1, s='Double-Plotted Online Actogram',
-                     ha='left', va='bottom', fontweight='bold', wrap=True)
+                        ha='left', va='bottom', fontweight='bold', wrap=True)
             fig_ax.text(0, 1.09, s=s, ha='left', va='top', wrap=True)
 
             ax.axis('off')
@@ -639,15 +640,17 @@ class Actography:
 
         def __main__(self):
 
-            if self.act.show: self.export_actogram()
-            if self.act.save_csv: self.export_csv('visits')
+            if self.act.show:
+                self.export_actogram()
+            if self.act.save_csv:
+                self.export_csv('visits')
 
         def export_actogram(self):
 
             fig = self.plot.fig
 
             orientation = 'horizontal' if self.act.landscape else 'vertical'
-            fig.savefig('actograms/actogram_' + orientation +'_' +
+            fig.savefig('actograms/actogram_' + orientation + '_' +
                         dt.today().date().isoformat() + '.png', dpi=self.plot.DPI)
 
         def export_csv(self, filename):
@@ -655,7 +658,7 @@ class Actography:
             self.act.df.to_csv('temp.csv')
 
             size_most_recent = 0
-            list_exports  = glob.glob('actograms/*.csv')
+            list_exports = glob.glob('actograms/*.csv')
 
             if len(list_exports):
                 most_recent = sorted(list_exports, key=os.path.getsize)[0]
@@ -667,16 +670,15 @@ class Actography:
 
 
 def main():
-
     act = Actography(ARGS)
     act()
 
     return None
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--freq', type=str, action='store',default='15T')
+    parser.add_argument('--freq', type=str, action='store', default='15T')
 
     parser.add_argument('--start', type=str, action='store', default='2021-08-01')
     parser.add_argument('--end', type=str, action='store', default=None)
@@ -692,4 +694,4 @@ if __name__ == '__main__':
 
     ARGS, UNK = parser.parse_known_args()
 
-    act = main()
+    main()
