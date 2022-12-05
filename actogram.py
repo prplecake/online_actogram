@@ -101,7 +101,10 @@ class Actography:
         @staticmethod
         def find_firefox_profile(home):
             cwd = os.getcwd()
-            profile_dir = os.path.join(home, 'Library/Application Support/Firefox/Profiles')
+            if sys.platform == "darwin":
+                profile_dir = os.path.join(home, 'Library/Application Support/Firefox/Profiles')
+            elif sys.platform == "win32":
+                profile_dir = os.path.join(home, 'AppData/Roaming/Mozilla/Firefox/Profiles')
             os.chdir(profile_dir)
             profile = glob.glob('*.default-release')
             os.chdir(cwd)
@@ -110,7 +113,7 @@ class Actography:
 
         def lookup_history_filepaths(self):
             """ check which OS user is running script from, then
-                check typical file paths for popular browser history files """
+            check typical file paths for popular browser history files """
 
             home = os.path.expanduser("~")
 
@@ -123,7 +126,7 @@ class Actography:
             elif sys.platform == "win32":
                 safari_src = None
                 chrome_src = home + '/AppData/Local/Google/Chrome/User Data/Default/History'
-                firefox_src = None  # TODO
+                firefox_src = os.path.join(self.find_firefox_profile(home), 'places.sqlite')
                 edge_src = None  # TODO
 
             else:
@@ -383,7 +386,7 @@ class Actography:
             continuous stretches with zero-encoding (asleep) to a storage list. 
 
             Then appends the largest element in storage list to a second output
-            list equal in len to XX corresponding to the longest offline periods. 
+            list equal in len to XX corresponding to the longest offline periods.
 
             Finally, multiplies np array'ed output list with binning frequency
             to estimate the longest real-time duration spent offline in date range
