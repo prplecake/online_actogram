@@ -104,6 +104,8 @@ class Actography:
                 profile_dir = os.path.join(home, 'Library/Application Support/Firefox/Profiles')
             elif sys.platform == "win32":
                 profile_dir = os.path.join(home, 'AppData/Roaming/Mozilla/Firefox/Profiles')
+            elif sys.platform == "linux":
+                profile_dir = os.path.join(home, '.mozilla/firefox/')
             os.chdir(profile_dir)
             profile = glob.glob('*.default-release')
             os.chdir(cwd)
@@ -127,6 +129,12 @@ class Actography:
                 chrome_src = home + '/AppData/Local/Google/Chrome/User Data/Default/History'
                 firefox_src = os.path.join(self.find_firefox_profile(home), 'places.sqlite')
                 edge_src = home + '/AppData/Local/Microsoft/Edge/User Data/Default/History'
+                
+            elif sys.platform == "linux":
+                safari_src = None
+                chrome_src = None # TODO
+                firefox_src = os.path.join(self.find_firefox_profile(home), 'places.sqlite')
+                edge_src = None  # TODO
 
             else:
                 print('Sorry, having trouble with your operating system.')
