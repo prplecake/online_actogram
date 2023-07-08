@@ -167,6 +167,9 @@ class Actography:
                 src, fname = value
 
                 if src is not None:
+                    if not os.path.isfile(src):
+                        continue
+
                     if key == 'safari':
                         command_str = 'SELECT datetime(visit_time+978307200, "unixepoch",\
                                       "localtime") FROM history_visits ORDER BY visit_time DESC;'
