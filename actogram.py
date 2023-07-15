@@ -149,7 +149,7 @@ class Actography:
         def copy_history_to_temp_folder(self):
             """ Iterate through each file referenced in the history_loc_dict 
             and copy to some temporary folder. This avoids direclty operating 
-            on the user's broswers' history files. """
+            on the user's browsers' history files. """
 
             for key, value in self.history_loc_dict.items():
                 src, fname = value
@@ -179,7 +179,7 @@ class Actography:
                       fname + '\' was not loaded.')
 
         def import_history_to_working_memory(self):
-            """ Imports all of the files in the temporary folder into working
+            """ Imports all the files in the temporary folder into working
                 memory. Each browser's particular history file format is 
                 standardized before concatenating to an overarching df"""
 
@@ -187,6 +187,9 @@ class Actography:
                 src, fname = value
 
                 if src is not None:
+                    if not os.path.isfile(src):
+                        continue
+
                     if key == 'safari':
                         command_str = 'SELECT datetime(visit_time+978307200, "unixepoch",\
                                       "localtime") FROM history_visits ORDER BY visit_time DESC;'
@@ -210,7 +213,7 @@ class Actography:
 
         def delete_temporary_history_folder(self):
             """ Delete the temporary folder after files are copied into working 
-            memory. No need to cache this temporary folder, unless looking to backup
+            memory. No need to cache this temporary folder, unless looking to back up
             browser history data (in which case there are better alternatives) """
 
             if os.path.isdir('temp_history'):
@@ -389,11 +392,11 @@ class Actography:
             Takes vector of binary-encoded sleep-wake periods and tallies
             continuous stretches with zero-encoding (asleep) to a storage list. 
 
-            Then appends largest element in storage list to a second output
-            list equal in len to XX corresponding to longest offline periods. 
+            Then appends the largest element in storage list to a second output
+            list equal in len to XX corresponding to the longest offline periods. 
 
-            Finally multiplies np array'ed output list with binning frequency 
-            to estimate longest real-time duration spent offline in date range
+            Finally, multiplies np array'ed output list with binning frequency
+            to estimate the longest real-time duration spent offline in date range
             """
             temp = self.binned_df
             #xx, yy, zz = self.pcm
