@@ -105,7 +105,7 @@ class Actography:
             elif sys.platform == "win32":
                 profile_dir = os.path.join(home, 'AppData/Roaming/Mozilla/Firefox/Profiles')
             elif sys.platform == "linux":
-                profile_dir = os.path.join(home, '.mozilla/firefox/')
+                profile_dir = os.path.join(home, '.mozilla/firefox')
             os.chdir(profile_dir)
             profile = glob.glob('*.default-release')
             os.chdir(cwd)
