@@ -1,3 +1,4 @@
+import configparser
 import os
 import sys
 import sqlite3
@@ -99,17 +100,20 @@ class Actography:
             self.delete_temporary_history_folder()
 
         def find_firefox_profile(self, home):
-            cwd = os.getcwd()
             if sys.platform == "darwin":
-                profile_dir = os.path.join(home, 'Library/Application Support/Firefox/Profiles')
+                profile_dir = os.path.join(home, 'Library/Application Support/Firefox')
             elif sys.platform == "win32":
-                profile_dir = os.path.join(home, 'AppData/Roaming/Mozilla/Firefox/Profiles')
+                profile_dir = os.path.join(home, 'AppData/Roaming/Mozilla/Firefox')
             elif sys.platform == "linux":
                 profile_dir = os.path.join(home, '.mozilla/firefox')
-            os.chdir(profile_dir)
-            profile = glob.glob('*.default-release')
-            os.chdir(cwd)
-            profile_path = os.path.join(profile_dir, profile[0])
+            ff_config = configparser.ConfigParser()
+            ff_config.read(os.path.join(profile_dir, "profiles.ini"))
+            for section in ff_config.sections():
+                if section.startswith("Install"):
+                    p = ff_config[section]["Default"]
+                    if "default-release" in p:
+                        profile = p
+            profile_path = os.path.join(profile_dir, profile)
             return profile_path
 
         def lookup_history_filepaths(self):
