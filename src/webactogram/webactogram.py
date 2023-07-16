@@ -698,7 +698,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     elif isinstance(argv, _str): # else if argv is supplied but it's a simple string, we need to parse it to a list of arguments before handing to argparse or any other argument parser
         argv = shlex.split(argv) # Parse string just like argv using shlex
 
-    parser = argparse.ArgumentParser()
+    desc = '''WebActogram
+Description: Generate actograms from web browsers history. This may help in retrospectively screening sleep-wake patterns & disorders.
+This will output result files (a picture of the actogram plot and a csv file with all the detected browsers history) in an actograms folder.'''
+
+    parser = argparse.ArgumentParser(add_help=True, description=desc, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('--freq', type=str, action='store',default='15T')
 
     parser.add_argument('--start', type=str, action='store', default='2021-08-01')

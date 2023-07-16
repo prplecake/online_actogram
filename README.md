@@ -1,33 +1,62 @@
-# online_actogram
-Actogram from browsers history, to screen sleep-wake patterns and sleep disorders.
-
-This repository and tool will be renamed.
-
-Forked from Barrett F. Davis excellent [online_actogram](https://github.com/barrettfdavis/online_actogram) script.
+# WebActogram
+🌐🏃Actogram from browsers history, may help to retrospectively screen 🌙🛌sleep-wake patterns & disorders!
 
 ## Description
-Script to generate an 'online actogram' from web browser history files.
+Python 3 tool to generate a web actogram from web browsers history files.
 
-The graphical presentation was inspired by this [UCSD tutorial](https://ccb.ucsd.edu/the-bioclock-studio/education-resources/basics/part2.html) and [this scientific paper](https://doi.org/10.1186/1741-7007-8-93).
+To screen sleep-wake patterns and disorders, all tools require that the user wear an actigraphic device or record themselves a sleep diary.
+
+The web actogram is the first pseudo-actigraphic tool that can provide an instantaneous estimation of the user’s sleep-wake pattern, aka actogram, by inferring an actogram from the browser’s history. This could allow for mass screening of sleep-wake patterns and disorders.
+
+The limitations are however as follows:
+
+* The sleep patterns are only very indirectly estimated, only the wakefulness patterns can be considered reliable.
+* The web actogram reliability depends on whether the user is an avid user of web browsers: they must use their web browsers on a daily basis.
+* The user must use solely one browser, otherwise it won’t work (in the future we will merge multiple browsers’ histories).
+* The user must primarily use a web browser on a computer (not on a smartphone - this will be implemented in the future).
+* The more data over a longer period, the more precisely and robust the pattern will appear.
+
+How the actogram is plotted was inspired by [this UCSD tutorial](https://ccb.ucsd.edu/the-bioclock-studio/education-resources/basics/part2.html) and [this scientific paper](https://doi.org/10.1186/1741-7007-8-93).
+
+## Install & Quickstart
+
+Install with:
+
+```pip install webactogram```
+
+Use in a terminal (or `cmd` on Windows):
+
+```webactogram```
+
+Note: First, you need to `cd` in a folder with write permission.
+
+This will create a folder `actograms` in the current folder, and add inside a picture with the latest actogram and a csv file with all the browsers activities recorded.
+
+More options, such as the sampling frequency (and hence granularity of the actogram and its patterns) can be shown with:
+
+```webactogram --help```
 
 ### Compatibility
 Currently configured to import history from ALL browsers available on the system, from the default user profiles for each:
 - Windows:
   - Chrome ``History`` file
   - Edge ``History`` file
+  - Firefox ``History`` file
 - MacOS:
   - Chrome ``History`` file
   - Safari ``History.db``
+  - Firefox ``History`` file
+- Linux:
+  - Firefox ``History`` file
 
-Currently, this script may not function as intended if you use multiple profiles within one browser, or the browser's default installation profile has changed.
+Currently, this script may not function as intended if you use multiple profiles within one browser (especially for Firefox), or the browser's default installation profile has changed.
 
 ## Usage
 History files are copied from their home directories to a temporary location in the working directory. These copies are then deleted after the script has executed. Only the ``last_visit_time`` is read.
 
 Plots are easily generated from the command line:
 
-```python actogram.py```
-
+```webactogram```
 
 Plots will be saved in a new sub-folder called "actograms" with appropriate timestamp and description. 
 
@@ -71,7 +100,7 @@ Where:
 
 ## Authors
 
-This tool originated from an idea and script by [Barrett F. Davis](https://github.com/barrettfdavis/online_actogram), initially released in [July 2020](https://web.archive.org/web/20221127100155/https://www.reddit.com/r/N24/comments/hxve2w/dont_delete_your_browser_history/).
+This tool is a fork from the excellent [online_actogram](https://github.com/barrettfdavis/online_actogram) script by Barrett F. Davis who conceived both the idea and the first implementation initially released in [July 2020](https://web.archive.org/web/20221127100155/https://www.reddit.com/r/N24/comments/hxve2w/dont_delete_your_browser_history/).
 
 ## License
 
