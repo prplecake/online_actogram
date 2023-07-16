@@ -110,7 +110,7 @@ Since then, it is maintained by Stephen Karl Larroque and the Circadiaware Colle
 
 Lots of awesome contributors made awesome contributions to further improve this software, we cannot thank them enough!
 
-|Contributors|
+[![Contributors][6]][7]
 
 For a list of all contributors, please see `the GitHub Contributors graph <https://github.com/circadiaware/webactogram/graphs/contributors>`_ and the `commits history <https://github.com/circadiaware/webactogram/commits/master>`_.
 
@@ -128,3 +128,5 @@ How to generate the history.txt file ([source](https://www.reddit.com/r/N24/comm
 [3]: https://img.shields.io/pypi/pyversions/webactogram.svg?logo=python&logoColor=white
 [4]: https://img.shields.io/pypi/l/webactogram.svg
 [5]: https://img.shields.io/pypi/dm/webactogram.svg?label=pypi%20downloads&logo=python&logoColor=white
+[6]: https://contrib.rocks/image?repo=circadiaware/webactogram
+[7]: https://github.com/circadiaware/webactogram/graphs/contributors
