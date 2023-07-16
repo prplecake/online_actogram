@@ -92,16 +92,6 @@ Where:
 --printer_friendly sets whether activity is shown in black on white (friendly) or vice versa (False by default, ex. --printer_friendly True)
 ```
 
-## Latest updates
-
-[Feature] Added support for the ``Default`` profile of Microsoft Edge for Windows
-
-[Bug fix] Previously there was an artificially low minimum window for all generated plots. Plots can now be shown with minutes resolution 
-
-[Feature] Added "activity CDF" subplot to gauge periods of minimum and maximum activity 
-
-[Feature] Added cumulative "offline hours" subplot to estimate sleep per 24h period (NB: this yields artificially high results with high freq values)
-
 ## Authors
 
 This tool is a fork from the excellent [online_actogram](https://github.com/barrettfdavis/online_actogram) script by Barrett F. Davis who conceived both the idea and the first implementation initially released in [July 2020](https://web.archive.org/web/20221127100155/https://www.reddit.com/r/N24/comments/hxve2w/dont_delete_your_browser_history/).
