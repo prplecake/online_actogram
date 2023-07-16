@@ -1,35 +1,73 @@
+#!/usr/bin/env python
+#
+# Main script entry point for pyFileFixity, provides an interface with subcommands
+# Copyright (C) 2023 Stephen Karl Larroque
+#
+# Licensed under the MIT License (MIT)
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+#=================================
+#     pyFileFixity Main Subcommands Facade API
+#                by Stephen Larroque
+#                       License: MIT
+#              Creation date: 2023-08-04
+#=================================
+
+## Imports
+
+# Native IO
+import argparse
 import configparser
+import glob
 import os
+import shlex
 import sys
 import sqlite3
-import argparse
 from shutil import copy, rmtree
-
-import glob
-import numpy as np
-import pandas as pd
-
-from itertools import groupby
-from scipy.ndimage import median_filter
-
+# Native maths
 import datetime
 from datetime import timedelta
 from datetime import datetime as dt
+from itertools import groupby
+# Typing
+from collections.abc import Sequence
 
+# Scientific stack
+import numpy as np
+import pandas as pd
+from scipy.ndimage import median_filter
+
+# Plot
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.gridspec as gridspec
 from matplotlib.ticker import FormatStrFormatter
 
-
+## Plots config
 plt.close('all'); plt.style.use('default')
 for tick in ['xtick.minor.visible', 'ytick.minor.visible']:
     plt.rcParams[tick] = False
 
+## Main class
 class Actography:
-
     def __init__(self, args):
-
         self.show = args.show
         self.save_csv = args.save_csv
 
@@ -71,11 +109,9 @@ class Actography:
         else: self.start = dt.fromisoformat('2000-01-01 00:00:00')
 
     def __call__(self):
-
         self.__main__()
 
     def __main__(self):
-
         os.makedirs('actograms/', exist_ok=True)
 
         self.ImportData(self)
@@ -85,7 +121,6 @@ class Actography:
         self.ExportData(self, plot)
 
     class ImportData:
-
         def __init__(self, act):
             super().__init__()
             self.act = act
@@ -93,7 +128,6 @@ class Actography:
             self.__main__()
 
         def __main__(self):
-
             self.lookup_history_filepaths()
             self.copy_history_to_temp_folder()
             self.import_history_to_working_memory()
@@ -154,7 +188,6 @@ class Actography:
             """ Iterate through each file referenced in the history_loc_dict 
             and copy to some temporary folder. This avoids direclty operating 
             on the user's browsers' history files. """
-
             for key, value in self.history_loc_dict.items():
                 src, fname = value
 
@@ -164,7 +197,6 @@ class Actography:
 
         def copy_history_func(self, src, fname, dst_folder='temp_history'):
             """ function to copy file at given file location to temporary folder"""
-
             os.makedirs(dst_folder, exist_ok=True)
             dst = os.path.join(dst_folder, fname)
 
@@ -186,7 +218,6 @@ class Actography:
             """ Imports all the files in the temporary folder into working
                 memory. Each browser's particular history file format is 
                 standardized before concatenating to an overarching df"""
-
             for key, value in self.history_loc_dict.items():
                 src, fname = value
 
@@ -219,14 +250,12 @@ class Actography:
             """ Delete the temporary folder after files are copied into working 
             memory. No need to cache this temporary folder, unless looking to back up
             browser history data (in which case there are better alternatives) """
-
             if os.path.isdir('temp_history'):
                 rmtree('temp_history')
 
         def _import_history_func(self, file_name, command_str):
             """ Function to open SQL styled history files and convert to a pandas
             DataFrame type. SQL objects are closed after copying to Pandas DF. """
-
             cnx = sqlite3.connect(file_name)
             df = pd.read_sql_query(command_str, cnx)
             cnx.commit()
@@ -238,7 +267,6 @@ class Actography:
             return df
 
     class ProcessData:
-
         def __init__(self, act):
             super().__init__()
             self.act = act
@@ -253,7 +281,6 @@ class Actography:
             self.__main__()
 
         def __main__(self):
-
             self.aggregate_visits_by_freq()
             self.pre_allocate_binned_df()
             self.clip_date_range() # TODO make timezone aware, add option for visualizing in either current tz or selected tz
@@ -278,7 +305,6 @@ class Actography:
             rows corresponding to all the time intervals (e.g. 5 min)
             in the input dataframe's date range. Output row values are the 
             number of visits within each time interval. """
-
             visits = pd.to_datetime(self.df.iloc[:, 0])
             self.df = pd.DataFrame({'visits': np.ones(len(visits))}, index=visits)
             self.df = self.df.resample(self.act.freq).agg({'visits': 'sum'})
@@ -286,7 +312,6 @@ class Actography:
 
 
         def pre_allocate_binned_df(self):
-
             """
             INPUT: binned visit histories from previous step (private class variable)
 
@@ -298,7 +323,6 @@ class Actography:
             in the input dataframe's date range. Output row values are the 
             number of visits within each time interval. 
             """
-
             bdf = pd.DataFrame(data=self.df, index=self.df.index)
 
             d1 = self.df.index.min().floor(freq='D') - timedelta(days=1)
@@ -312,7 +336,6 @@ class Actography:
             self.binned_df = bdf
 
         def clip_date_range(self):
-
             first_visit = self.df.ne(0).idxmax()[0]
             dt_first_visit = dt.combine(first_visit, dt.min.time())
             if self.act.start <= dt_first_visit: self.act_start = dt_first_visit
@@ -328,7 +351,6 @@ class Actography:
 
         def init_pcolormesh_args(self):
             """ define the x, y and z (color) data structure for plotting later on"""
-
             z = self.binned_df['z'].T.values
             act_z = np.asarray(z.reshape(len(self.act.h1), -1, order='F'))
 
@@ -340,7 +362,6 @@ class Actography:
         def apply_median_blurring(self):
             """ apply blurring process to smooth out time away from the internet 
             at the daily level or one-off periods at the day-to-day level"""
-
             zz = self.pcm['z']
 
             if self.act.hblur: zz = median_filter(zz, size=(self.act.hblur, 1))
@@ -350,7 +371,6 @@ class Actography:
             self.pcm['z'] = zz.astype(float)
 
         def define_pcolormesh_args(self):
-
             xx, yy, zz = self.act.dd, self.act.h2, np.tile(self.pcm['z'], (2, 1))
 
             if not self.act.landscape:
@@ -361,7 +381,6 @@ class Actography:
             self.act.act = self.pcm
 
         def define_subplot_args(self):
-
             dt = self.act.freq_intv
 
             ax_pdf = 0^self.act.landscape
@@ -382,7 +401,6 @@ class Actography:
             self.act.pdf = (lambda x: x/x.max())(np.nansum(zz, axis=ax_pdf))
 
         def pass_processed_data(self):
-
             self.act.df = self.df
             self.act.binned_df = self.binned_df
 
@@ -413,13 +431,8 @@ class Actography:
                 longest_break = np.array(screen_breaks).max() * self.act.freq_intv
                 self.act.sleeps.append(longest_break)
 
-
-
-
     class PlotData:
-
         def __init__(self, act):
-
             super().__init__()
             self.act = act
 
@@ -462,13 +475,10 @@ class Actography:
 
             self.__main__()
 
-
         def __main__(self):
-
             self.fig = self.plotter()
 
         def plotter(self):
-
             p = self.plot_params
             fig, fig_ax = plt.subplots(figsize=p['figsize'])
 
@@ -493,9 +503,7 @@ class Actography:
 
             return fig
 
-
         def subplot_the_actogram(self, ax):
-
             cmap = 'binary' if self.friendly else 'binary_r'
 
             lbl = lambda _: '0h' if not _%24 else ''.join('0'+str(_%24))[-2:]
@@ -535,14 +543,11 @@ class Actography:
 
             return ax
 
-
         def subplot_the_pdf(self, ax, ref_ax):
-
             x = self.act.h2
             pdf = self.act.pdf
 
             if self.landscape:
-
                 ax.fill_betweenx(x, pdf, color='grey', alpha=0.3,lw=0,step='mid')
 
                 ax.spines['top'].set_visible(False)
@@ -561,7 +566,6 @@ class Actography:
                 ax.invert_xaxis()
 
             else:
-
                 ax.fill_between(x, pdf, color='grey', alpha=0.3,lw=0,step='mid')
 
                 ax.spines['right'].set_visible(False)
@@ -578,19 +582,15 @@ class Actography:
                 ax.set_xticks(ref_ax.get_xticks())
                 ax.set_xlim(ref_ax.get_xlim())
 
-
                 ax.invert_yaxis()
 
             return ax
 
-
         def subplot_the_timeshare(self, ax, ref_ax):
-
             x = self.act.dd
             y1, y2 = self.act.timeshare
 
             if self.landscape:
-
                 ax.fill_between(x, y1, color='grey', alpha=0.3, lw=0, step='mid')
                 ax.fill_between(x, y2, color='k', alpha=0.5, lw=0, step='mid')
 
@@ -610,7 +610,6 @@ class Actography:
                 ax.invert_yaxis()
 
             else:
-
                 ax.fill_betweenx(x, y1, color='grey', alpha=0.3, lw=0, step='mid')
                 ax.fill_betweenx(x, y2, color='k', alpha=0.5, lw=0, step='mid')
 
@@ -632,7 +631,6 @@ class Actography:
             return ax
 
         def plot_subplot_titles(self, ax, fig_ax):
-
             p = self.plot_params
 
             increments =int(60/(self.freq_no/(24)))
@@ -660,7 +658,6 @@ class Actography:
             ax.axis('off')
 
     class ExportData:
-
         def __init__(self, act, plot):
             super().__init__()
             self.act = act
@@ -669,12 +666,10 @@ class Actography:
             self.__main__()
 
         def __main__(self):
-
             if self.act.show: self.export_actogram()
             if self.act.save_csv: self.export_csv('visits')
 
         def export_actogram(self):
-
             fig = self.plot.fig
 
             orientation = 'horizontal' if self.act.landscape else 'vertical'
@@ -682,7 +677,6 @@ class Actography:
                         dt.today().date().isoformat() + '.png', dpi=self.plot.DPI)
 
         def export_csv(self, filename):
-
             self.act.df.to_csv('temp.csv')
 
             size_most_recent = 0
@@ -697,14 +691,12 @@ class Actography:
                 os.remove('temp.csv')
 
 
-def main():
-
-    act = Actography(ARGS)
-    act()
-
-    return None
-
-if __name__ == '__main__':
+## Main entry point (with arguments parser)
+def main(argv: Sequence[str] | None = None) -> int:
+    if argv is None: # if argv is empty, fetch from the commandline
+        argv = sys.argv[1:]
+    elif isinstance(argv, _str): # else if argv is supplied but it's a simple string, we need to parse it to a list of arguments before handing to argparse or any other argument parser
+        argv = shlex.split(argv) # Parse string just like argv using shlex
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--freq', type=str, action='store',default='15T')
@@ -721,6 +713,13 @@ if __name__ == '__main__':
     parser.add_argument('--landscape', type=bool, action='store', default=True)
     parser.add_argument('--save_csv', type=bool, action='store', default=True)
 
-    ARGS, UNK = parser.parse_known_args()
+    ARGS, UNK = parser.parse_known_args(argv)
 
-    act = main()
+    act = Actography(ARGS)
+    act()
+    return 0
+
+
+## If called from commandline
+if __name__ == '__main__':
+    main(sys.argv)
