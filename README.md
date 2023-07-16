@@ -1,4 +1,5 @@
 # WebActogram
+[![PyPI-Status][1]][2] [![PyPI-Versions][3]][2] [![PyPi-License][4]][2] [![PyPI-Downloads][5]][2]
 🌐🏃Actogram from browsers history, may help to retrospectively screen 🌙🛌sleep-wake patterns & disorders!
 
 ## Description
@@ -110,3 +111,9 @@ MIT Public License.
 
 Another project, inspired by this one, was written in Javascript using D3, but it cannot fetch browser's history: [Tylian's D3 Browser's History](https://web.archive.org/web/20221207124930/https://tylian.net/d3/history.html).
 How to generate the history.txt file ([source](https://www.reddit.com/r/N24/comments/hxve2w/comment/g30ve2y/?utm_source=share&utm_medium=web2x&context=3)): ```It's a dump of the timestamp column with some manual processing to divide every entry by 1000, since Firefox stores them as a nanosecond epoch for some reason..```
+
+[1]: https://img.shields.io/pypi/v/webactogram.svg
+[2]: https://pypi.org/project/webactogram
+[3]: https://img.shields.io/pypi/pyversions/webactogram.svg?logo=python&logoColor=white
+[4]: https://img.shields.io/pypi/l/webactogram.svg
+[5]: https://img.shields.io/pypi/dm/webactogram.svg?label=pypi%20downloads&logo=python&logoColor=white
