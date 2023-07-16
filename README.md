@@ -106,6 +106,14 @@ Where:
 
 This tool is a fork from the excellent [online_actogram](https://github.com/barrettfdavis/online_actogram) script by Barrett F. Davis who conceived both the idea and the first implementation initially released in [July 2020](https://web.archive.org/web/20221127100155/https://www.reddit.com/r/N24/comments/hxve2w/dont_delete_your_browser_history/).
 
+Since then, it is maintained by Stephen Karl Larroque and the Circadiaware Collective.
+
+Lots of awesome contributors made awesome contributions to further improve this software, we cannot thank them enough!
+
+|Contributors|
+
+For a list of all contributors, please see `the GitHub Contributors graph <https://github.com/circadiaware/webactogram/graphs/contributors>`_ and the `commits history <https://github.com/circadiaware/webactogram/commits/master>`_.
+
 ## License
 
 MIT Public License.
