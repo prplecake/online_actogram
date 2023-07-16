@@ -112,7 +112,7 @@ Lots of awesome contributors made awesome contributions to further improve this 
 
 [![Contributors][6]][7]
 
-For a list of all contributors, please see `the GitHub Contributors graph <https://github.com/circadiaware/webactogram/graphs/contributors>`_ and the `commits history <https://github.com/circadiaware/webactogram/commits/master>`_.
+For a list of all contributors, please see [the GitHub Contributors graph](https://github.com/circadiaware/webactogram/graphs/contributors) and the [commits history](https://github.com/circadiaware/webactogram/commits/master).
 
 ## License
 
