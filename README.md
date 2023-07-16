@@ -6,7 +6,7 @@
 ## Description
 Python 3 tool to generate a web actogram from web browsers history files.
 
-To screen sleep-wake patterns and disorders, all tools require that the user wear an actigraphic device or record themselves a sleep diary.
+To screen sleep-wake patterns and disorders, all such tools require that the user wear an actigraphic device or record themselves a sleep diary.
 
 The web actogram is the first pseudo-actigraphic tool that can provide an instantaneous estimation of the user’s sleep-wake pattern, aka actogram, by inferring an actogram from the browser’s history. This could allow for mass screening of sleep-wake patterns and disorders.
 
@@ -22,7 +22,9 @@ How the actogram is plotted was inspired by [this UCSD tutorial](https://ccb.ucs
 
 ## Install & Quickstart
 
-Install with:
+First you need a modern Python 3 interpreter, such as [Miniconda3](https://docs.conda.io/en/latest/miniconda.html#latest-miniconda-installer-links).
+
+Then, install WebActogram with:
 
 ```pip install webactogram```
 
