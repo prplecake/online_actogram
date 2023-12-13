@@ -1,10 +1,10 @@
 # WebActogram
 [![PyPI-Status][1]][2] [![PyPI-Versions][3]][2] [![PyPi-License][4]][2] [![PyPI-Downloads][5]][2]
 
-🌐🏃Actogram from browsers history, may help to retrospectively screen 🌙🛌sleep-wake patterns & disorders!
+🌐🏃Use your browser's history as a novel instantaneous screening tool for 🌙🛌sleep patterns & maybe disorders!
 
 ## Description
-Python 3 tool to generate a web actogram from web browsers history files.
+Python 3 tool to generate an online actogram from web browsers history files. Supports various browsers including Google Chrome, Mozilla Firefox and Safari history files.
 
 To screen sleep-wake patterns and disorders, all such tools require that the user wear an actigraphic device or record themselves a sleep diary.
 
