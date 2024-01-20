@@ -1,5 +1,1 @@
 # Always keep this file even if empty, it’s necessary to avoid GitHub Actions setup-python choking...
-matplotlib>=3.3.4
-numpy>=1.21.0
-pandas>=1.3.4
-scipy>=1.6.1
