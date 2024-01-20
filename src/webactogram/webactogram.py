@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 #
-# Main script entry point for pyFileFixity, provides an interface with subcommands
-# Copyright (C) 2023 Stephen Karl Larroque
+# WebActogram
+# Copyright (C) 2020-2022 Barrett F. Davis
+# Copyright (C) 2021-2024 Stephen Karl Larroque
 #
 # Licensed under the MIT License (MIT)
 #
@@ -24,10 +25,12 @@
 # THE SOFTWARE.
 #
 #=================================
-#     pyFileFixity Main Subcommands Facade API
-#                by Stephen Larroque
-#                       License: MIT
-#              Creation date: 2023-08-04
+#          WebActogram
+#      by Barrett F. Davis
+#      and other contributors
+#      maintained by Stephen Karl Larroque
+#         License: MIT
+#  Creation date: 2023-08-04
 #=================================
 
 ## Imports
