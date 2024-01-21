@@ -29,7 +29,7 @@
 	install
 	build
 	buildupload
-	pypi
+	upload
 	help
 	none
 	run
@@ -127,7 +127,7 @@ upload:
 
 buildupload:
 	@+make build
-	@+make pypi
+	@+make upload
 
 none:
 	# used for unit testing
