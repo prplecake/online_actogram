@@ -40,6 +40,7 @@ import argparse
 import configparser
 import glob
 import os
+import random
 import shlex
 import sys
 import sqlite3
@@ -51,6 +52,8 @@ from datetime import datetime as dt
 from itertools import groupby
 # Typing
 from collections.abc import Sequence
+# Path
+from pathlib import Path 
 
 # Scientific stack
 import numpy as np
@@ -127,6 +130,7 @@ class Actography:
         def __init__(self, act):
             super().__init__()
             self.act = act
+            self.history_loc_dict_temp = []  # temporary dictionary to store the filepaths of the temporary history files and which browser they relate to (for SQLite queries) -- we copy history files to a temporary folder to avoid modifying the original ones
 
             self.__main__()
 
@@ -157,51 +161,75 @@ class Actography:
             """ check which OS user is running script from, then
             check typical file paths for popular browser history files """
 
-            home = os.path.expanduser("~")
+            #home = os.path.expanduser("~")
+            home = str(Path.home())
+            history_filepaths = {}  # dictionary to store filepaths for each browser. Structure is: {browser: [filepath1, filepath2, ...]} because there can be multiple filpaths for the browser history, multiple profiles per browser, and sometimes the default profile is not named Default (eg for Chrome).
 
             if sys.platform == "darwin":  # Darwin == OSX
-                safari_src = os.path.join(home, 'Library/Safari/History.db')
-                chrome_src = os.path.join(home, 'Library/Application Support/Google/Chrome/Default/History')
-                firefox_src = os.path.join(self.find_firefox_profile(home), 'places.sqlite')
-                edge_src = None  # TODO
+                history_filepaths['safari'] = [os.path.join(home, 'Library/Safari/History.db')]
+                history_filepaths['chrome'] = [os.path.join(home, 'Library/Application Support/Google/Chrome/Default/History'),
+                                               os.path.join(home, 'Library/Application Support/Google/Chrome/Profile 1/History'),
+                                               os.path.join(home, 'Library/Application Support/Google/Chrome/Guest/History')
+                                               ]
+                history_filepaths['firefox'] = [os.path.join(self.find_firefox_profile(home), 'places.sqlite')]
+                history_filepaths['edge'] = [os.path.join(home, 'Library/Application Support/Microsoft Edge/Default/History'),
+                                             os.path.join(home, 'Library/Application Support/Microsoft Edge/Profile 1/History'),
+                                             os.path.join(home, 'Library/Application Support/Microsoft Edge/Guest/History')
+                                            ]
 
             elif sys.platform == "win32":
-                safari_src = None
-                chrome_src = home + '/AppData/Local/Google/Chrome/User Data/Default/History'
-                firefox_src = os.path.join(self.find_firefox_profile(home), 'places.sqlite')
-                edge_src = home + '/AppData/Local/Microsoft/Edge/User Data/Default/History'
+                # Note: when using os.path.join(), make sure there is no leading '/', otherwise it will treat it as an absolute path and forget the home directory
+                history_filepaths['safari'] = [os.path.join(home, 'AppData/Local/Safari/History.db')]
+                history_filepaths['chrome'] = [os.path.join(home, 'AppData/Local/Google/Chrome/User Data/Default/History'),
+                                               os.path.join(home, 'AppData/Local/Google/Chrome/User Data/Profile 1/History'),
+                                               os.path.join(home, 'AppData/Local/Google/Chrome/User Data/Guest/History')
+                                               ]
+                history_filepaths['firefox'] = [os.path.join(self.find_firefox_profile(home), 'places.sqlite')]
+                history_filepaths['edge'] = [os.path.join(home, 'AppData/Local/Microsoft/Edge/User Data/Default/History'),
+                                            os.path.join(home, 'AppData/Local/Microsoft/Edge/User Data/Profile 1/History'),
+                                            os.path.join(home, 'AppData/Local/Microsoft/Edge/User Data/Guest/History')
+                                            ]
                 
             elif sys.platform == "linux":
-                safari_src = None
-                chrome_src = None # TODO
-                firefox_src = os.path.join(self.find_firefox_profile(home), 'places.sqlite')
-                edge_src = None  # TODO
+                history_filepaths['safari'] = [os.path.join(home, '.config/safari/History.db')]
+                history_filepaths['chrome'] = [os.path.join(home, '.config/google-chrome/Default/History'),
+                                               os.path.join(home, '.config/google-chrome/Profile 1/History'),
+                                               os.path.join(home, '.config/google-chrome/Guest/History')
+                                               ]
+                history_filepaths['firefox'] = [os.path.join(self.find_firefox_profile(home), 'places.sqlite')]
+                history_filepaths['edge'] = [os.path.join(home, '.config/microsoft-edge/Default/History'),
+                                            os.path.join(home, '.config/microsoft-edge/Profile 1/History'),
+                                            os.path.join(home, '.config/microsoft-edge/Guest/History')
+                                            ]
 
             else:
                 print('Sorry, having trouble with your operating system.')
                 sys.exit()
 
-            self.history_loc_dict = {'safari': [safari_src, 'History.db'],
-                                     'chrome': [chrome_src, 'History'],
-                                     'firefox': [firefox_src, 'places.sqlite'],
-                                     'edge': [edge_src, 'History']
-                                     }
+            self.history_loc_dict = history_filepaths
 
         def copy_history_to_temp_folder(self):
             """ Iterate through each file referenced in the history_loc_dict 
             and copy to some temporary folder. This avoids direclty operating 
             on the user's browsers' history files. """
-            for key, value in self.history_loc_dict.items():
-                src, fname = value
+            for browser, pathslist in self.history_loc_dict.items():
+                for path in pathslist:
+                    if path is not None and os.path.exists(path) and os.path.isfile(path):
+                        # If the file exists, copy it to a temporary folder
+                        self.copy_history_func(browser, path)
 
-                if src is not None:
-                    self.copy_history_func(src, fname)
-
-
-        def copy_history_func(self, src, fname, dst_folder='temp_history'):
+        def copy_history_func(self, browser, src, dst_folder='temp_history'):
             """ function to copy file at given file location to temporary folder"""
             os.makedirs(dst_folder, exist_ok=True)
+            fname = Path(src).name  # get the filename from the path
             dst = os.path.join(dst_folder, fname)
+            # Test if destination file already exists
+            if os.path.exists(dst):
+                # If it already exists (eg, multiple profiles for one browser), change destination folder dst to append a random number to the filename to avoid collision
+                dst = os.path.join(dst_folder, fname + str(hex(random.getrandbits(65))[2:-1]))
+
+            # Since the output can be different from input, we need to create a new dict to map and remember what are the browsers (to know which SQLite commands to send)
+            self.history_loc_dict_temp.append([browser, dst])
 
             try:
                 copy(src, dst)
@@ -220,34 +248,35 @@ class Actography:
         def import_history_to_working_memory(self):
             """ Imports all the files in the temporary folder into working
                 memory. Each browser's particular history file format is 
-                standardized before concatenating to an overarching df"""
-            for key, value in self.history_loc_dict.items():
-                src, fname = value
+                standardized before concatenating to an overarching df.
+                This effectively merges all histories from various browsers and profiles."""
+            
+            # All the sql commands to extract the history data from the different browsers SQLite databases
+            sql_commands = {
+                'safari':
+                    'SELECT datetime(visit_time+978307200, "unixepoch",\
+                    "localtime") FROM history_visits ORDER BY visit_time DESC;',
+                'chrome':
+                    "SELECT datetime(last_visit_time/1000000-11644473600,\
+                    'unixepoch','localtime') FROM urls ORDER BY last_visit_time DESC;",
+                'firefox':
+                    'SELECT datetime(visit_date/1000000,\
+                    "unixepoch", "localtime") FROM moz_historyvisits ORDER BY visit_date ASC;',
+                'edge':
+                    "SELECT datetime(last_visit_time/1000000-11644473600,\
+                    'unixepoch','localtime') FROM urls ORDER BY last_visit_time DESC;"
+            }
 
-                if src is not None:
-                    if not os.path.isfile(src):
-                        continue
+            df_list = []  # list of dataframes to concatenate outside of the loop (faster than concatenating inside the loop, otherwise memory is reallocated at each iteration so complexity is O(N^2) quadratic)
 
-                    if key == 'safari':
-                        command_str = 'SELECT datetime(visit_time+978307200, "unixepoch",\
-                                      "localtime") FROM history_visits ORDER BY visit_time DESC;'
-
-                    elif key == 'chrome':
-                        command_str = "SELECT datetime(last_visit_time/1000000-11644473600,\
-                        'unixepoch','localtime'), url FROM urls ORDER BY last_visit_time DESC;"
-
-                    elif key == 'firefox':
-                        command_str = 'SELECT datetime(visit_date/1000000,\
-                        "unixepoch", "localtime") FROM moz_historyvisits ORDER BY visit_date ASC;'
-                        pass
-
-                    elif key == 'edge':
-                        command_str = "SELECT datetime(last_visit_time/1000000-11644473600,\
-                        'unixepoch','localtime'), url FROM urls ORDER BY last_visit_time DESC;"
-
-                    temp_src = os.path.join('temp_history', fname)
-                    df = self._import_history_func(temp_src, command_str)
-                    self.act.df = pd.concat([self.act.df, df])
+            # For each browsers' history file, import the data into a pandas dataframe and add into a list
+            for (browser, path) in self.history_loc_dict_temp:
+                    if path is not None and os.path.exists(path) and os.path.isfile(path):
+                        # If the file doesn't exist, skip it
+                        df = self._import_history_func(path, sql_commands[browser])
+                        df_list.append(df) # add the dataframe to the list of dataframes, complexity O(1)
+            # Concatenate all dataframes at once, complexity is then O(N)
+            self.act.df = pd.concat(df_list)
 
         def delete_temporary_history_folder(self):
             """ Delete the temporary folder after files are copied into working 
@@ -259,13 +288,13 @@ class Actography:
         def _import_history_func(self, file_name, command_str):
             """ Function to open SQL styled history files and convert to a pandas
             DataFrame type. SQL objects are closed after copying to Pandas DF. """
-            cnx = sqlite3.connect(file_name)
-            df = pd.read_sql_query(command_str, cnx)
-            cnx.commit()
-            cnx.close()
+            cnx = sqlite3.connect(file_name)  # connect to the SQLite database
+            df = pd.read_sql_query(command_str, cnx)  # read the SQL query into a pandas dataframe
+            cnx.commit()  # commit changes (this is necessary to close the connection, and is why we copy the history files to a temporary folder beforehand to avoid tampering the originals)
+            cnx.close()  # close the connection
 
-            df.rename(inplace=True, columns={df.columns[0]: 'visit_time'})
-            df = pd.to_datetime(df['visit_time'], errors='coerce').dropna()
+            df.rename(inplace=True, columns={df.columns[0]: 'visit_time'})  # rename the column to 'visit_time' for consistency
+            df['visit_time'] = pd.to_datetime(df['visit_time'], errors='coerce').dropna()  # drop NaT values (and keep it as a DataFrame, because it will always return a Series since we are manipulating a single column)
 
             return df
 
@@ -308,7 +337,7 @@ class Actography:
             rows corresponding to all the time intervals (e.g. 5 min)
             in the input dataframe's date range. Output row values are the 
             number of visits within each time interval. """
-            visits = pd.to_datetime(self.df.iloc[:, 0])
+            visits = pd.to_datetime(self.df.loc[:, 'visit_time'])
             self.df = pd.DataFrame({'visits': np.ones(len(visits))}, index=visits)
             self.df = self.df.resample(self.act.freq).agg({'visits': 'sum'})
             self.df = self.df.fillna(0)
@@ -339,7 +368,9 @@ class Actography:
             self.binned_df = bdf
 
         def clip_date_range(self):
-            first_visit = self.df.ne(0).idxmax()[0]
+            first_visit = self.df.ne(0)  # creates a boolean mask where each element is True if the corresponding element in self.df is not equal to 0, and False otherwise.
+            first_visit = first_visit.idxmax()  # returns the index of the first occurrence of the maximum value in the Series. If the Series is all True/False values, then this will be the index of the first True value.
+            first_visit = first_visit.iloc[0]  # indexing the Series returned by idxmax().
             dt_first_visit = dt.combine(first_visit, dt.min.time())
             if self.act.start <= dt_first_visit: self.act_start = dt_first_visit
 
@@ -636,7 +667,7 @@ class Actography:
         def plot_subplot_titles(self, ax, fig_ax):
             p = self.plot_params
 
-            increments =int(60/(self.freq_no/(24)))
+            steps = int(60/(self.freq_no/(24)))
 
             if self.landscape:
                 ax.text(1, 1+p['hspace']/2, p['labels'][0], ha='right')
@@ -644,7 +675,7 @@ class Actography:
 
                 s = ("Approximate sleep-wake periods, generated from time stamped "
                     "internet browser searches\nbetween {:%d-%b-%Y} and {:%d-%b-%Y}. "
-                    "Increments of {} minutes.".format(self.act.dd[0], self.act.dd[-1], increments))
+                    "Window steps of {} minutes.".format(self.act.dd[0], self.act.dd[-1], steps))
 
             else:
                 ax.text(1, 1-p['hspace'], p['labels'][0], ha='right')
@@ -652,7 +683,7 @@ class Actography:
 
                 s = ("Approximate sleep-wake periods, generated from time stamped "
                     "internet browser searches between {:%d-%b-%Y} and {:%d-%b-%Y}. "
-                    "Increments of {} minutes.".format(self.act.dd[0], self.act.dd[-1], increments))
+                    "Window steps of {} minutes.".format(self.act.dd[0], self.act.dd[-1], steps))
 
             fig_ax.text(x=0, y=1.1, s='Double-Plotted Online Actogram',
                      ha='left', va='bottom', fontweight='bold', wrap=True)
