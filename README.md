@@ -3,6 +3,28 @@
 
 🌐🏃Use your browser's history as a novel instantaneous mass screening tool for 🌙🛌sleep patterns & maybe disorders!
 
+<img src="actograms/example_actogram_horizontal_2024-01-20.png" alt="image" width="50%" height="auto" />
+
+## Install & Quickstart
+
+First you need a modern Python 3 interpreter, such as [Miniconda3](https://docs.conda.io/en/latest/miniconda.html#latest-miniconda-installer-links).
+
+Then, install WebActogram with:
+
+```pip install webactogram```
+
+To generate an actogram and display it, type the following command in a terminal (or `cmd` or PowerShell on Windows):
+
+```webactogram```
+
+Note: First, you need to `cd` in a folder with write permission (so that the actogram image can be saved in a subfolder).
+
+This will create a folder `actograms` in the current folder, and add inside a picture with the latest actogram and a csv file with all the browsers activities recorded.
+
+More options, such as the sampling frequency (and hence granularity of the actogram and its patterns) can be shown with:
+
+```webactogram --help```
+
 ## Description
 Python 3 tool to generate an online actogram from web browsers history files. Supports various browsers including Google Chrome, Mozilla Firefox and Safari history files (full list of supported browsers [here](https://browser-history.readthedocs.io/en/latest/browsers.html)).
 
@@ -28,52 +50,14 @@ The limitations are however as follows:
 
 How the actogram is plotted was inspired by [this UCSD tutorial](https://ccb.ucsd.edu/the-bioclock-studio/education-resources/basics/part2.html) and [this scientific paper](https://doi.org/10.1186/1741-7007-8-93).
 
-## Install & Quickstart
-
-First you need a modern Python 3 interpreter, such as [Miniconda3](https://docs.conda.io/en/latest/miniconda.html#latest-miniconda-installer-links).
-
-Then, install WebActogram with:
-
-```pip install webactogram```
-
-Use in a terminal (or `cmd` on Windows):
-
-```webactogram```
-
-Note: First, you need to `cd` in a folder with write permission.
-
-This will create a folder `actograms` in the current folder, and add inside a picture with the latest actogram and a csv file with all the browsers activities recorded.
-
-More options, such as the sampling frequency (and hence granularity of the actogram and its patterns) can be shown with:
-
-```webactogram --help```
-
-### Compatibility
-Currently configured to import history from ALL browsers available on the system, from the default user profiles for each:
-- Windows:
-  - Chrome ``History`` file
-  - Edge ``History`` file
-  - Firefox ``History`` file
-- MacOS:
-  - Chrome ``History`` file
-  - Safari ``History.db``
-  - Firefox ``History`` file
-- Linux:
-  - Firefox ``History`` file
-
-Currently, this script may not function as intended if you use multiple profiles within one browser (especially for Firefox), or the browser's default installation profile has changed.
-
 ## Usage
-History files are copied from their home directories to a temporary location in the working directory. These copies are then deleted after the script has executed. Only the ``last_visit_time`` is read.
-
-Plots are easily generated from the command line:
+Plots are easily generated from the command line by typing the following command:
 
 ```webactogram```
 
 Plots will be saved in a new sub-folder called "actograms" with appropriate timestamp and description. 
 
-
-Script now supports command line arguments for additional customizability.
+The software now supports command line arguments for additional customizability.
 For example: 
 
 ```python actogram.py --freq '15T' --daily_blur 3 --start '2020-01-01' ```
@@ -99,6 +83,10 @@ Where:
 
 --printer_friendly sets whether activity is shown in black on white (friendly) or vice versa (False by default, ex. --printer_friendly True)
 ```
+
+## Privacy statement
+
+The only data that is extracted from your browsers usage is the datetime of visited pages from the browsers histories. The URLs is not extracted, nor any other information. No data is ever leaving your computer.
 
 ## Authors
 
