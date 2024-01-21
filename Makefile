@@ -1,8 +1,7 @@
 # This Makefile runs tests and builds the package to upload to pypi
-# To use this Makefile, pip install webactogram
-# then do: webactogram <command>
-# or: python.exe -m webactogram <command>
-# You also need to pip install also other required modules: `pip install flake8 coverage twine pytest pytest-cov validate-pyproject[all] pytest-xdist rstcheck` , or simply `pip install --editable .[test]`
+# To use this Makefile, pip install py3make
+# then do: py3make <command>
+# You also need to pip install also other required modules: `pip install --editable .[test]`
 # Up to Python 3.9 included, nosetests was used, but from 3.10 onward, support for it was dropped since it is not maintained anymore, so that pytest and pytest-cov are used instead.
 # Then, cd to this folder, and type `webactogram -p` to list all commands, then `webactogram <command>` to run the related entry.
 # To test on multiple Python versions, install them, install also the C++ redistributables for each (so that Cython works), and then type `webactogram testtox`.
