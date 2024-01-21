@@ -764,6 +764,7 @@ class Actography:
             orientation = 'horizontal' if self.act.landscape else 'vertical'  # orientation
             pngfilepath = 'actograms/actogram_' + orientation +'_' + dt.today().date().isoformat() + '.png'  # png file path
             fig.savefig(pngfilepath, dpi=self.plot.DPI)  # save the figure as a png
+            print('Saved actogram in: ' + os.path.abspath(pngfilepath))  # print the absolute path to the png file
             if self.act.show:
                 self.show_image_with_matplotlib(pngfilepath)
 
@@ -779,8 +780,10 @@ class Actography:
                 size_most_recent = os.path.getsize(most_recent)
 
             if os.path.getsize('temp.csv') >= size_most_recent:
-                self.act.df.to_csv('actograms/' + filename + '.csv')
+                csv_filepath = 'actograms/' + filename + '.csv'
+                self.act.df.to_csv(csv_filepath)
                 os.remove('temp.csv')
+                print('Saved actogram in: ' + os.path.abspath(csv_filepath))
 
 
 ## Main entry point (with arguments parser)
