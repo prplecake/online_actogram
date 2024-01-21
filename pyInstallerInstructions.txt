@@ -2,8 +2,8 @@ Instructions to build a standalone exe using pyInstaller:
 
 1. Install Anaconda or Miniconda3.
 2. Launch the Anaconda/Miniconda3 command prompt, or just a standard terminal if conda is in the PATH.
-3. conda create -n webactogramenv python=3.10
-Note: you can change the python version when a newer interpreter will be released. Creating a new venv is necessary to limit the number of packages in the environment, so that pyinstaller does not include a whole lot of unnecessary packages.
+3. conda create -n webactogramenv python=3.11
+Note: you can change the python version when a newer interpreter will be released. Creating a new venv is necessary to limit the number of packages in the environment, so that pyinstaller does not include a whole lot of unnecessary packages in the final binaries.
 4. conda activate webactogramenv
 5. pip install --upgrade webactogram
 Note: webactogram needs to be up-to-date on pypi, otherwise replace this command by `pip install -e .` to use the local version.
@@ -11,12 +11,11 @@ Note2: if trying to compile for another platform such as 32-bits, then it may be
 6. pip install --upgrade pyinstaller
 
 From this step on, you can reuse the same environment each time you want to rebuild the freezed binary (as long as you install nothing else but the strictly necessary packages to run your project, as to keep it clean and with minimal dependencies):
-7. cd to the webactogram subfolder (the module one, where webactogram.py resides)
+7. cd to the webactogram folder (the root of the project, where there is pyproject.toml)
 8. conda activate webactogramenv
-9. if there is any dist or build or __pycache folder, delete them
-10. pyinstaller -D -c --hidden-import="pkg_resources.py2_warn" --hidden-import="pkg_resources.py3_warn" --add-data="_version.py;." webactogram.py
-Note: we used to bundle as one-file (with -F option), but in newer versions, the python app is unpackaged in a random temporary folder, which makes it difficult to bundle config files that are easily accessible and modifiable by the user. And also such apps are slower to launch than one-folder bundles. So we now bundle as a one-folder, using the -D option. We also force the console to stay open with the -c argument as it gives additional infos to the user, especially in case of errors.
-11. Copy config.ini and config_internal.ini in the dist/webactogram folder
-12. Zip the dist/webactogram folder and distribute it.
+9. if there is any dist or build or __pycache__ folder (in src/webactogram/__pycache__), delete them
+10. pyinstaller -F -c --hidden-import="pkg_resources.py2_warn" --hidden-import="pkg_resources.py3_warn" src/webactogram/webactogram.py
+Note: we used to bundle as one-file (with -F option), but in newer versions, the python app is unpackaged in a random temporary folder, which makes it difficult to bundle config files that are easily accessible and modifiable by the user. And also such apps are slower to launch than one-folder bundles. So it can be preferred to bundle as a one-folder app, using the -D option. We also force the console to stay open with the -c argument as it gives additional infos to the user, especially in case of errors.
+11. Zip the dist/webactogram folder and distribute it.
 
 To build a 32-bit binary, simply install Miniconda3 32-bit and repeat the steps above with the 32-bit interpreter.
