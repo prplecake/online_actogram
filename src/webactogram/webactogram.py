@@ -54,6 +54,8 @@ from itertools import groupby
 from collections.abc import Sequence
 # Path
 from pathlib import Path 
+# Browser history
+from browser_history import get_history
 
 # Scientific stack
 import numpy as np
@@ -77,17 +79,19 @@ for tick in ['xtick.minor.visible', 'ytick.minor.visible']:
 ## Main class
 class Actography:
     def __init__(self, args):
-        self.show = args.show
-        self.png = args.png
-        self.save_csv = args.save_csv
+        self.show = args.show  # show the plot
+        self.png = args.png  # save as png
+        self.save_csv = args.csv  # save as csv
 
         self.freq = args.freq
         self.norm = args.normalize
         self.dblur = args.daily_blur
         self.hblur = args.hourly_blur
 
-        self.landscape = args.landscape
-        self.printer_friendly = args.printer_friendly
+        self.landscape = args.landscape  # horizontal or vertical printing mode
+        self.printer_friendly = args.printer_friendly  # printer friendly mode (black and white)
+
+        self.legacy = args.legacy  # use legacy (internal) browsers histories import method, otherwise if false we will use browser-history external module (more browsers supported and all profiles are imported)
 
         self.zz = None # wakefulness
         self.dd = None # day range
@@ -128,11 +132,29 @@ class Actography:
     def __main__(self):
         os.makedirs('actograms/', exist_ok=True)
 
-        self.ImportData(self)  # import the data
+        # import the data
+        if self.legacy:
+            # Old internal method to import browsers histories
+            self.ImportData(self)
+        else:
+            # New method to import browsers histories using an external module
+            self.import_data_ext()
         self.ProcessData(self)  # process the data
 
         plot = self.PlotData(self)  # plot the data
         self.ExportData(self, plot)  # export the data (to png or csv)
+
+    def import_data_ext(self):
+        """ Import histories data using browser-history package """
+        outputs = get_history()
+        # his is a list of (datetime.datetime, url) tuples
+        histories = outputs.histories
+        # convert to a dataframe with the same structure as before, to stay compatible
+        df = pd.DataFrame((x[0] for x in histories), columns=['visit_time'])
+        df['visit_time'] = pd.to_datetime(df['visit_time'].dt.tz_localize(None), errors='coerce').dropna()  # drop NaT values (and keep it as a DataFrame, because it will always return a Series since we are manipulating a single column)
+            # TODO: browser-history.get_history() returns timezone-awake datetime objects, but the rest of the code compares against timezone-naive datetime objects, so for now we strip away the timezone-aware info using df['visit_time'].dt.tz_localize(None)
+        self.df = df
+        return df
 
     class ImportData:
         def __init__(self, act):
@@ -783,11 +805,12 @@ This will output result files (a picture of the actogram plot and a csv file wit
     parser.add_argument('--daily_blur', type=int, action='store', default=False, help='Daily blur of the actogram. Default is 0 (no blur).')
     parser.add_argument('--normalize', type=int, action='store', default=True, help='Normalize the actogram. Default is True (normalize).')
 
-    parser.add_argument('--png', type=bool, action='store', default=True, help='Save the actogram as a png. Default is True (save).')
-    parser.add_argument('--show', type=bool, action='store', default=True, help='Show the actogram in a window. Default is True (show).')
-    parser.add_argument('--printer_friendly', type=bool, action='store', default=False, help='Printer friendly actogram. Default is False (no).')
-    parser.add_argument('--landscape', type=bool, action='store', default=True, help='Landscape actogram. Default is True (yes).')
-    parser.add_argument('--save_csv', type=bool, action='store', default=True, help='Save the actogram as a csv. Default is True (save).')
+    parser.add_argument('--png', action='store_true', default=True, help='Save the actogram as a png. Default is True (save).')
+    parser.add_argument('--csv', action='store_true', default=True, help='Save the actogram as a csv. Default is True (save).')
+    parser.add_argument('--show', action='store_true', default=True, help='Show the actogram in a window just after generation. Default is True (show).')
+    parser.add_argument('--printer_friendly', action='store_true', default=False, help='Printer friendly actogram (black and white). Default is False (no).')
+    parser.add_argument('--landscape', action='store_true', default=True, help='Orientation of the plot: True is horizontal, False is vertical. Default is True (horizontal).')
+    parser.add_argument('--legacy', action='store_true', default=False, help='Use old internal method to import browser histories data. If false, will use browser-history external module (more browsers supported and all profiles are imported). Default: False (no).')
 
     ARGS, UNK = parser.parse_known_args(argv)
 
