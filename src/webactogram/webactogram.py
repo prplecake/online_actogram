@@ -66,6 +66,9 @@ import matplotlib.dates as mdates
 import matplotlib.gridspec as gridspec
 from matplotlib.ticker import FormatStrFormatter
 
+# GUI
+import matplotlib.image as mpimg
+
 ## Plots config
 plt.close('all'); plt.style.use('default')  # close all plots and use default style
 for tick in ['xtick.minor.visible', 'ytick.minor.visible']:
@@ -75,6 +78,7 @@ for tick in ['xtick.minor.visible', 'ytick.minor.visible']:
 class Actography:
     def __init__(self, args):
         self.show = args.show
+        self.png = args.png
         self.save_csv = args.save_csv
 
         self.freq = args.freq
@@ -723,16 +727,23 @@ class Actography:
             self.__main__()
 
         def __main__(self):
-            if self.act.show: self.export_actogram()  # export the actogram as a png
+            if self.act.show or self.act.png: self.export_actogram_png()  # export the actogram as a png
             if self.act.save_csv: self.export_csv('visits')  # or export the actogram as a csv
 
-        def export_actogram(self):
+        def show_image_with_matplotlib(self, file_path):
+            img = mpimg.imread(file_path)
+            imgplot = plt.imshow(img)
+            plt.show()
+
+        def export_actogram_png(self):
             """ Export the actogram as a png """
             fig = self.plot.fig
 
-            orientation = 'horizontal' if self.act.landscape else 'vertical'
-            fig.savefig('actograms/actogram_' + orientation +'_' +
-                        dt.today().date().isoformat() + '.png', dpi=self.plot.DPI)
+            orientation = 'horizontal' if self.act.landscape else 'vertical'  # orientation
+            pngfilepath = 'actograms/actogram_' + orientation +'_' + dt.today().date().isoformat() + '.png'  # png file path
+            fig.savefig(pngfilepath, dpi=self.plot.DPI)  # save the figure as a png
+            if self.act.show:
+                self.show_image_with_matplotlib(pngfilepath)
 
         def export_csv(self, filename):
             """ Export the actogram as a csv """
@@ -763,19 +774,20 @@ Description: Generate actograms from web browsers history. This may help in retr
 This will output result files (a picture of the actogram plot and a csv file with all the detected browsers history) in an actograms folder.'''
 
     parser = argparse.ArgumentParser(add_help=True, description=desc, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('--freq', type=str, action='store',default='15T')
+    parser.add_argument('--freq', type=str, action='store', default='15T', help='Frequency of the actogram. Default is 15T (15 minutes).')
 
-    parser.add_argument('--start', type=str, action='store', default='2021-08-01')
-    parser.add_argument('--end', type=str, action='store', default=None)
+    parser.add_argument('--start', type=str, action='store', default='2021-08-01', help='Start date of the actogram. Default is 2021-08-01.')
+    parser.add_argument('--end', type=str, action='store', default=None, help='End date of the actogram. Default is None (today).')
 
-    parser.add_argument('--hourly_blur', type=int, action='store', default=False)
-    parser.add_argument('--daily_blur', type=int, action='store', default=False)
-    parser.add_argument('--normalize', type=int, action='store', default=True)
+    parser.add_argument('--hourly_blur', type=int, action='store', default=False, help='Hourly blur of the actogram. Default is 0 (no blur).')
+    parser.add_argument('--daily_blur', type=int, action='store', default=False, help='Daily blur of the actogram. Default is 0 (no blur).')
+    parser.add_argument('--normalize', type=int, action='store', default=True, help='Normalize the actogram. Default is True (normalize).')
 
-    parser.add_argument('--show', type=bool, action='store', default=True)
-    parser.add_argument('--printer_friendly', type=bool, action='store', default=False)
-    parser.add_argument('--landscape', type=bool, action='store', default=True)
-    parser.add_argument('--save_csv', type=bool, action='store', default=True)
+    parser.add_argument('--png', type=bool, action='store', default=True, help='Save the actogram as a png. Default is True (save).')
+    parser.add_argument('--show', type=bool, action='store', default=True, help='Show the actogram in a window. Default is True (show).')
+    parser.add_argument('--printer_friendly', type=bool, action='store', default=False, help='Printer friendly actogram. Default is False (no).')
+    parser.add_argument('--landscape', type=bool, action='store', default=True, help='Landscape actogram. Default is True (yes).')
+    parser.add_argument('--save_csv', type=bool, action='store', default=True, help='Save the actogram as a csv. Default is True (save).')
 
     ARGS, UNK = parser.parse_known_args(argv)
 
