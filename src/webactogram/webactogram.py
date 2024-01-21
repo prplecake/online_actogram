@@ -67,9 +67,9 @@ import matplotlib.gridspec as gridspec
 from matplotlib.ticker import FormatStrFormatter
 
 ## Plots config
-plt.close('all'); plt.style.use('default')
+plt.close('all'); plt.style.use('default')  # close all plots and use default style
 for tick in ['xtick.minor.visible', 'ytick.minor.visible']:
-    plt.rcParams[tick] = False
+    plt.rcParams[tick] = False  # disable minor ticks
 
 ## Main class
 class Actography:
@@ -90,29 +90,33 @@ class Actography:
         self.h1 = None # 24 hour range
         self.h2 = None # 48 hour range
 
-        self.act = None
-        self.pdf = None
-        self.timeshare = None
+        self.act = None  # actogram
+        self.pdf = None  # probability density function
+        self.timeshare = None  # timeshare
 
-        self.sleeps = []
+        self.sleeps = []  # sleep times
 
-        self.df = pd.DataFrame() # activity dataframe (each row === site visit)
+        self.df = pd.DataFrame() # activity dataframe (each row === site visit time)
         self.binned_df = pd.DataFrame() # df binned by interval (e.g. 15 min)
 
-        self.freq_intv = float(self.freq[:-1])/60
-        self.freq_no = int(24*60/float(self.freq[:-1]))
+        self.freq_intv = float(self.freq[:-1])/60  # frequency interval in hours
+        self.freq_no = int(24*60/float(self.freq[:-1]))  # frequency number
 
-        self.h1 = np.linspace(0, 24, self.freq_no, endpoint=False)
-        self.h2 = np.linspace(0, 48, 2*self.freq_no, endpoint=False)
+        self.h1 = np.linspace(0, 24, self.freq_no, endpoint=False)  # 24 hour range
+        self.h2 = np.linspace(0, 48, 2*self.freq_no, endpoint=False)  # 48 hour range
 
-        self.end = dt.combine(dt.today() - timedelta(days=1), dt.max.time())
+        self.end = dt.combine(dt.today() - timedelta(days=1), dt.max.time())  # end date
 
         # TODO fix this to query intelligently (i.e., ignore 5% of early days
         # if they are isolated from rest, use a cutoff like 90% of data
 
-        if args.start == 'available': self.start = dt.fromisoformat('2000-01-01 00:00:00')
-        elif args.start is not None: self.start = dt.fromisoformat(args.start)
-        else: self.start = dt.fromisoformat('2000-01-01 00:00:00')
+        # start date
+        if args.start == 'available':
+            self.start = dt.fromisoformat('2000-01-01 00:00:00')  # if start date is available, set to 2000-01-01 00:00:00
+        elif args.start is not None:
+            self.start = dt.fromisoformat(args.start)  # if start date is not None, set to the start date
+        else:
+            self.start = dt.fromisoformat('2000-01-01 00:00:00')  # otherwise, set to 2000-01-01 00:00:00
 
     def __call__(self):
         self.__main__()
@@ -120,27 +124,28 @@ class Actography:
     def __main__(self):
         os.makedirs('actograms/', exist_ok=True)
 
-        self.ImportData(self)
-        self.ProcessData(self)
+        self.ImportData(self)  # import the data
+        self.ProcessData(self)  # process the data
 
-        plot = self.PlotData(self)
-        self.ExportData(self, plot)
+        plot = self.PlotData(self)  # plot the data
+        self.ExportData(self, plot)  # export the data (to png or csv)
 
     class ImportData:
         def __init__(self, act):
             super().__init__()
-            self.act = act
+            self.act = act  # actogram class
             self.history_loc_dict_temp = []  # temporary dictionary to store the filepaths of the temporary history files and which browser they relate to (for SQLite queries) -- we copy history files to a temporary folder to avoid modifying the original ones
 
             self.__main__()
 
         def __main__(self):
-            self.lookup_history_filepaths()
-            self.copy_history_to_temp_folder()
-            self.import_history_to_working_memory()
-            self.delete_temporary_history_folder()
+            self.lookup_history_filepaths()  # lookup the history filepaths
+            self.copy_history_to_temp_folder()  # copy the history files to a temporary folder
+            self.import_history_to_working_memory()  # import the history files to working memory
+            self.delete_temporary_history_folder()  # delete the temporary folder
 
         def find_firefox_profile(self, home):
+            """ Find the default Firefox profile on the user's computer. """
             if sys.platform == "darwin":
                 profile_dir = os.path.join(home, 'Library/Application Support/Firefox')
             elif sys.platform == "win32":
@@ -299,32 +304,33 @@ class Actography:
             return df
 
     class ProcessData:
+        """ Process the imported data into a format that can be plotted """
         def __init__(self, act):
             super().__init__()
-            self.act = act
+            self.act = act  # actogram class
 
-            self.pcm = None
-            self.pdf = None
-            self.tshare = None
+            self.pcm = None  # pcolormesh data
+            self.pdf = None  # probability density function
+            self.tshare = None  # timeshare
 
-            self.df = self.act.df
-            self.binned_df = self.act.df
+            self.df = self.act.df  # activity dataframe
+            self.binned_df = self.act.df  # binned dataframe
 
             self.__main__()
 
         def __main__(self):
-            self.aggregate_visits_by_freq()
-            self.pre_allocate_binned_df()
-            self.clip_date_range() # TODO make timezone aware, add option for visualizing in either current tz or selected tz
+            self.aggregate_visits_by_freq()  # aggregate the visits by frequency
+            self.pre_allocate_binned_df()  # pre-allocate the binned dataframe
+            self.clip_date_range()  # clip the date range to the first visit # TODO make timezone aware, add option for visualizing in either current tz or selected tz
 
-            self.init_pcolormesh_args()
-            self.apply_median_blurring()
-            self.define_pcolormesh_args()
+            self.init_pcolormesh_args()  # initialize the pcolormesh arguments
+            self.apply_median_blurring()  # apply median blurring
+            self.define_pcolormesh_args()  # define the pcolormesh arguments
 
-            self.check_continuous_sleep_times()
-            self.define_subplot_args()
+            self.check_continuous_sleep_times()  # check the continuous sleep times
+            self.define_subplot_args()  # define the subplot arguments
 
-            self.pass_processed_data()
+            self.pass_processed_data()  # pass the processed data to the plotting class
 
         def aggregate_visits_by_freq(self):
             """
@@ -337,11 +343,10 @@ class Actography:
             rows corresponding to all the time intervals (e.g. 5 min)
             in the input dataframe's date range. Output row values are the 
             number of visits within each time interval. """
-            visits = pd.to_datetime(self.df.loc[:, 'visit_time'])
-            self.df = pd.DataFrame({'visits': np.ones(len(visits))}, index=visits)
-            self.df = self.df.resample(self.act.freq).agg({'visits': 'sum'})
-            self.df = self.df.fillna(0)
-
+            visits = pd.to_datetime(self.df.loc[:, 'visit_time'])  # convert the visit_time column to datetime objects
+            self.df = pd.DataFrame({'visits': np.ones(len(visits))}, index=visits)  # create a dataframe with the visits column and the visits as the index
+            self.df = self.df.resample(self.act.freq).agg({'visits': 'sum'})  # resample the dataframe to the specified frequency and aggregate the visits column by summing
+            self.df = self.df.fillna(0)  # fill the NaN values with 0
 
         def pre_allocate_binned_df(self):
             """
@@ -355,86 +360,89 @@ class Actography:
             in the input dataframe's date range. Output row values are the 
             number of visits within each time interval. 
             """
-            bdf = pd.DataFrame(data=self.df, index=self.df.index)
+            bdf = pd.DataFrame(data=self.df, index=self.df.index)  # create a dataframe with the same index as self.df
 
-            d1 = self.df.index.min().floor(freq='D') - timedelta(days=1)
-            d2 = self.df.index.max().ceil(freq='D') - timedelta(days=1, seconds=1)
-            days = pd.date_range(d1, d2, freq=self.act.freq)
+            d1 = self.df.index.min().floor(freq='D') - timedelta(days=1)  # get the first date in the index and subtract one day
+            d2 = self.df.index.max().ceil(freq='D') - timedelta(days=1, seconds=1)  # get the last date in the index and subtract one day and one second
+            days = pd.date_range(d1, d2, freq=self.act.freq)  # create a date range from the first date to the last date with the specified frequency
 
-            bdf = bdf.reindex(days, fill_value=0)
-            bdf['x'], bdf['y'] = (lambda x: (x.date, x.time))(bdf.index)
-            bdf.rename(columns={'visits': 'z'}, inplace=True)
+            bdf = bdf.reindex(days, fill_value=0)  # reindex the dataframe with the date range and fill the NaN values with 0
+            bdf['x'], bdf['y'] = (lambda x: (x.date, x.time))(bdf.index)  # create columns for the date and time
+            bdf.rename(columns={'visits': 'z'}, inplace=True)  # rename the visits column to z
 
-            self.binned_df = bdf
+            self.binned_df = bdf  # update the binned dataframe
 
         def clip_date_range(self):
+            """ clip the date range to the first visit """
             first_visit = self.df.ne(0)  # creates a boolean mask where each element is True if the corresponding element in self.df is not equal to 0, and False otherwise.
             first_visit = first_visit.idxmax()  # returns the index of the first occurrence of the maximum value in the Series. If the Series is all True/False values, then this will be the index of the first True value.
             first_visit = first_visit.iloc[0]  # indexing the Series returned by idxmax().
-            dt_first_visit = dt.combine(first_visit, dt.min.time())
-            if self.act.start <= dt_first_visit: self.act_start = dt_first_visit
+            dt_first_visit = dt.combine(first_visit, dt.min.time())  # combine the date of the first visit with the minimum time of the datetime object
+            if self.act.start <= dt_first_visit: self.act_start = dt_first_visit  # if the start date is before the first visit, then set the start date to the first visit
 
-            bdf = self.binned_df
-            bdf = bdf.fillna(0)
-            bdf = bdf[bdf.index >= self.act.start]
-            bdf = bdf[bdf.index <= self.act.end]
+            bdf = self.binned_df  # binned dataframe
+            bdf = bdf.fillna(0)  # fill the NaN values with 0
+            bdf = bdf[bdf.index >= self.act.start]  # clip the date range to the start date
+            bdf = bdf[bdf.index <= self.act.end]  # clip the date range to the end date
 
-            self.act.dd = pd.unique(bdf.index.date)
+            self.act.dd = pd.unique(bdf.index.date)  # unique dates
 
-            self.binned_df = bdf
+            self.binned_df = bdf  # update the binned dataframe
 
         def init_pcolormesh_args(self):
             """ define the x, y and z (color) data structure for plotting later on"""
             z = self.binned_df['z'].T.values
-            act_z = np.asarray(z.reshape(len(self.act.h1), -1, order='F'))
+            act_z = np.asarray(z.reshape(len(self.act.h1), -1, order='F'))  # reshape the z array to be 2D
 
-            self.pcm = {'x': None,
+            self.pcm = {'x': None,  # x and y are None because they will be defined later
                         'y': None,
-                        'z': act_z.astype(int)}
-
+                        'z': act_z.astype(int)}  # z is the reshaped z array
 
         def apply_median_blurring(self):
             """ apply blurring process to smooth out time away from the internet 
             at the daily level or one-off periods at the day-to-day level"""
             zz = self.pcm['z']
 
-            if self.act.hblur: zz = median_filter(zz, size=(self.act.hblur, 1))
-            if self.act.dblur: zz = median_filter(zz, size=(1, self.act.dblur))
-            if self.act.norm:  zz = (zz>=1)
+            if self.act.hblur: zz = median_filter(zz, size=(self.act.hblur, 1))  # apply median filter to the z array
+            if self.act.dblur: zz = median_filter(zz, size=(1, self.act.dblur))  # apply median filter to the z array
+            if self.act.norm:  zz = (zz>=1)  # normalize the z array
 
-            self.pcm['z'] = zz.astype(float)
+            self.pcm['z'] = zz.astype(float)  # update the pcm dictionary
 
         def define_pcolormesh_args(self):
-            xx, yy, zz = self.act.dd, self.act.h2, np.tile(self.pcm['z'], (2, 1))
+            """ define the x, y and z (color) data structure for plotting later on """
+            xx, yy, zz = self.act.dd, self.act.h2, np.tile(self.pcm['z'], (2, 1))  # tile the z array to create a 2D array
 
-            if not self.act.landscape:
-                xx, yy = yy, xx
-                zz = zz.T
+            if not self.act.landscape:  # if vertical
+                xx, yy = yy, xx  # swap the x and y arrays
+                zz = zz.T  # transpose the z array
 
-            self.pcm = {'x': xx, 'y': yy, 'z': zz}
-            self.act.act = self.pcm
+            self.pcm = {'x': xx, 'y': yy, 'z': zz}  # update the pcm dictionary
+            self.act.act = self.pcm  # update the act dictionary
 
         def define_subplot_args(self):
-            dt = self.act.freq_intv
+            """ define the x, y and z (color) data structure for plotting later on """
+            dt = self.act.freq_intv  # time interval
 
-            ax_pdf = 0^self.act.landscape
-            ax_ts = 1^self.act.landscape
+            ax_pdf = 0^self.act.landscape  # axis for pdf
+            ax_ts = 1^self.act.landscape  # axis for timeshare
 
             zz = self.pcm['z']
 
-            _ = lambda x: pd.Series(x).rolling(window=7, min_periods=0).mean()
-            offline_avg = _(24 - np.nansum(zz * dt/2, axis=ax_ts))
-            sleeps_avg = _(self.act.sleeps)
+            _ = lambda x: pd.Series(x).rolling(window=7, min_periods=0).mean()  # rolling average function
+            offline_avg = _(24 - np.nansum(zz * dt/2, axis=ax_ts))  # average offline time
+            sleeps_avg = _(self.act.sleeps)  # average sleep time
 
-            #days = pd.date_range(self.act.dd[0], self.act.dd[-1])
-            #pdf = np.pad(pdf, (2,1), mode='edge')
-            #offline_avg = np.pad(offline_avg, (1,2), mode='edge')
-            #sleeps_avg = np.pad(sleeps_avg, (1,2), mode='edge')
+            #days = pd.date_range(self.act.dd[0], self.act.dd[-1])  # days
+            #pdf = np.pad(pdf, (2,1), mode='edge')  # pad the pdf with zeros on either side
+            #offline_avg = np.pad(offline_avg, (1,2), mode='edge')  # pad the offline average with zeros on either side
+            #sleeps_avg = np.pad(sleeps_avg, (1,2), mode='edge')  # pad the sleep average with zeros on either side
 
-            self.act.timeshare = [offline_avg, sleeps_avg]
-            self.act.pdf = (lambda x: x/x.max())(np.nansum(zz, axis=ax_pdf))
+            self.act.timeshare = [offline_avg, sleeps_avg]  # timeshare
+            self.act.pdf = (lambda x: x/x.max())(np.nansum(zz, axis=ax_pdf))  # pdf
 
         def pass_processed_data(self):
+            """ pass processed data to the plotting class """
             self.act.df = self.df
             self.act.binned_df = self.binned_df
 
@@ -456,56 +464,59 @@ class Actography:
             """
             temp = self.binned_df
             #xx, yy, zz = self.pcm
-            days, awake = temp['x'], (temp['z'] > 0).values.astype(int)
+            days, awake = temp['x'], (temp['z'] > 0).values.astype(int)  # convert to binary
 
-            adhoc = pd.DataFrame(np.array([days, awake]).T, columns=['days', 'awake'])
+            adhoc = pd.DataFrame(np.array([days, awake]).T, columns=['days', 'awake'])  # create a dataframe with the days and awake columns
 
-            for idx, (_, v) in enumerate(list(adhoc.groupby('days')['awake'])):
-                screen_breaks = [sum(not(i) for i in g) for _, g in groupby(v)]
-                longest_break = np.array(screen_breaks).max() * self.act.freq_intv
-                self.act.sleeps.append(longest_break)
+            for idx, (_, v) in enumerate(list(adhoc.groupby('days')['awake'])):  # for each day, group the awake column by the day
+                screen_breaks = [sum(not(i) for i in g) for _, g in groupby(v)]  # count the number of consecutive zeros (screen breaks) in the awake column
+                longest_break = np.array(screen_breaks).max() * self.act.freq_intv  # get the longest break in the day and convert to hours
+                self.act.sleeps.append(longest_break)  # append the longest break to the list of longest breaks
 
     class PlotData:
+        """ Plot the processed data """
         def __init__(self, act):
+            """ Initialize the plotting class """
             super().__init__()
             self.act = act
 
-            self.freq_no = self.act.freq_no
-            self.landscape = self.act.landscape
-            self.friendly = self.act.printer_friendly
+            self.freq_no = self.act.freq_no  # frequency number
+            self.landscape = self.act.landscape  # landscape
+            self.friendly = self.act.printer_friendly  # printer friendly
 
-            self.DPI = 450
-            self.figsize = (8,6) if self.landscape else (7,8)
+            self.DPI = 450  # dots per inch
+            self.figsize = (8,6) if self.landscape else (7,8)  # figure size in inches
 
-            self.px_size = tuple(map(lambda x: x*self.DPI, self.figsize))
+            self.px_size = tuple(map(lambda x: x*self.DPI, self.figsize))  # figure size in pixels
 
-            self.lw = 1/(len(self.act.h1))
-            if len(self.act.h1) > 24*5: self.lw = 0
+            self.lw = 1/(len(self.act.h1))  # line width
+            if len(self.act.h1) > 24*5: self.lw = 0  # don't draw lines if too many
 
-            horizontal = {'figsize': self.figsize,
+            # Horizontal and vertical plot parameters
+            horizontal = {'figsize': self.figsize,  # figure size in inches
 
-                          'ax_pdf': [0, 0], 'ax_sleep': [1, 1],
-                          'labels': ['Activity PDF', 'Time Offline (h)'],
-                          'hratio': [1, 0.15], 'wratio': [0.1, 1],
+                          'ax_pdf': [0, 0], 'ax_sleep': [1, 1],  # axis locations for pdf and sleep
+                          'labels': ['Activity PDF', 'Time Offline (h)'],  # axis labels for pdf and time offline
+                          'hratio': [1, 0.15], 'wratio': [0.1, 1],  # height and width ratios for pdf and time offline
 
-                          'left':   0.1, 'right':  0.95,
-                          'bottom': 0.05, 'top':    0.85,
-                          'wspace': 0.12, 'hspace': 0.2,
+                          'left':   0.1, 'right':  0.95,  # left and right margins
+                          'bottom': 0.05, 'top':    0.85,  # bottom and top margins
+                          'wspace': 0.12, 'hspace': 0.2,  # width and height space
                         }
 
-            vertical = {'figsize': self.figsize,
+            vertical = {'figsize': self.figsize,  # figure size in inches
 
-                        'ax_pdf': [1, 1], 'ax_sleep': [0, 0],
-                        'labels': ['Time Offline (h)', 'Activity PDF'],
+                        'ax_pdf': [1, 1], 'ax_sleep': [0, 0],  # axis locations for pdf and sleep
+                        'labels': ['Time Offline (h)', 'Activity PDF'],  # axis labels for pdf and time offline
 
-                        'hratio': [1, 0.1], 'wratio': [0.2, 1],
+                        'hratio': [1, 0.1], 'wratio': [0.2, 1],  # height and width ratios for pdf and time offline
 
-                        'left':   0.10, 'right':  0.85,
-                        'bottom': 0.05, 'top':    0.85,
-                        'wspace': 0.22, 'hspace': 0.12,
+                        'left':   0.10, 'right':  0.85,  # left and right margins
+                        'bottom': 0.05, 'top':    0.85,  # bottom and top margins
+                        'wspace': 0.22, 'hspace': 0.12,  # width and height space
                         }
 
-            self.plot_params = horizontal if self.landscape else vertical
+            self.plot_params = horizontal if self.landscape else vertical  # select plot parameters based on landscape or not
 
             self.__main__()
 
@@ -513,185 +524,197 @@ class Actography:
             self.fig = self.plotter()
 
         def plotter(self):
-            p = self.plot_params
-            fig, fig_ax = plt.subplots(figsize=p['figsize'])
+            """ Plot the actogram """
+            p = self.plot_params  # plot parameters
+            fig, fig_ax = plt.subplots(figsize=p['figsize'])  # create a figure and axis
 
-            plt.subplots_adjust(bottom=p['bottom'], top=p['top'],
-                                left=p['left'], right=p['right'],
-                                wspace=p['wspace'], hspace=p['hspace'])
+            # create a grid of subplots with specific styling options.
+            plt.subplots_adjust(bottom=p['bottom'], top=p['top'],  # bottom and top margins
+                                left=p['left'], right=p['right'],  # left and right margins
+                                wspace=p['wspace'], hspace=p['hspace'])  # width and height space
 
-            spec = gridspec.GridSpec(ncols=2, nrows=2,
-                                     height_ratios = p['hratio'],
-                                     width_ratios= p['wratio'])
-            fig_ax.axis('off')
+            # Gridspec allows for more control over the layout of the figure
+            spec = gridspec.GridSpec(ncols=2, nrows=2,  # number of columns and rows
+                                     height_ratios = p['hratio'],  # height ratios
+                                     width_ratios= p['wratio'])  # width ratios
+            fig_ax.axis('off')  # turn off the axis
 
-            ax_actogram = fig.add_subplot(spec[0, 1])
-            ax_sleep = fig.add_subplot(spec[p['ax_sleep'][0], p['ax_sleep'][1]])
-            ax_pdf = fig.add_subplot(spec[p['ax_pdf'][0], p['ax_pdf'][1]])
-            ax_nul = fig.add_subplot(spec[1, 0])
+            ax_actogram = fig.add_subplot(spec[0, 1])  # add the actogram axis
+            ax_sleep = fig.add_subplot(spec[p['ax_sleep'][0], p['ax_sleep'][1]])  # add the sleep axis
+            ax_pdf = fig.add_subplot(spec[p['ax_pdf'][0], p['ax_pdf'][1]])  # add the pdf axis
+            ax_nul = fig.add_subplot(spec[1, 0])  # add the null axis
 
-            self.subplot_the_actogram(ax_actogram)
-            self.subplot_the_timeshare(ax_sleep, ax_actogram)
-            self.subplot_the_pdf(ax_pdf, ax_actogram)
-            self.plot_subplot_titles(ax_nul, fig_ax)
+            self.subplot_the_actogram(ax_actogram)  # plot the actogram
+            self.subplot_the_timeshare(ax_sleep, ax_actogram)  # plot the timeshare
+            self.subplot_the_pdf(ax_pdf, ax_actogram)  # plot the pdf
+            self.plot_subplot_titles(ax_nul, fig_ax)  # plot the subplot titles
 
-            return fig
+            return fig  # return the figure
 
         def subplot_the_actogram(self, ax):
-            cmap = 'binary' if self.friendly else 'binary_r'
+            """ Subplot the actogram """
+            cmap = 'binary' if self.friendly else 'binary_r'  # colormap
 
-            lbl = lambda _: '0h' if not _%24 else ''.join('0'+str(_%24))[-2:]
+            lbl = lambda _: '0h' if not _%24 else ''.join('0'+str(_%24))[-2:]  # label function
 
-            xx, yy, zz = [_ for k,_ in self.act.act.items()]
+            xx, yy, zz = [_ for k,_ in self.act.act.items()]  # x, y and z data
 
-            ax.pcolormesh(xx, yy, zz,
-                          shading='auto', cmap=cmap, vmin=0,
-                          ec='dimgrey', lw=self.lw, clip_on=False)
+            # create a pseudocolor plot on the axes ax with specific styling options.
+            ax.pcolormesh(xx, yy, zz,  # 2D arrays to represent the X and Y coordinates of the quadrilateral mesh, and then the colors in zz (each represent (x,y) coordinates)
+                          shading='auto', cmap=cmap, vmin=0,  # color shading style automatic based on the shape of the input array, cmap is the colormap used to map zz values to colors, vmin=0 sets the minimum data value that the colormap covers
+                          ec='dimgrey', lw=self.lw, clip_on=False)  # ec is the edge color between the rectangles, lw is the line width, clip_on=False means that the lines will be drawn outside of the axes
 
-            if self.landscape:
+            if self.landscape:  # if horizontal
+                locator = mdates.AutoDateLocator(minticks=1, maxticks=4)  # create a locator for the x axis. This will automatically select the best x axis tick locations based on the data.
+                ax.xaxis.set_major_formatter(mdates.ConciseDateFormatter(locator))  # set the x axis formatter to the locator
 
-                locator = mdates.AutoDateLocator(minticks=1, maxticks=4)
-                ax.xaxis.set_major_formatter(mdates.ConciseDateFormatter(locator))
+                ax.tick_params(axis='x', direction='out')  # set the x axis tick direction to out
+                ax.set_xticks(ax.get_xticks())  # set the x ticks
 
-                ax.tick_params(axis='x', direction='out')
-                ax.set_xticks(ax.get_xticks())
+                ax.set_yticks(np.arange(0, int(self.act.h2[-1]), 6))  # set the y ticks by 6 hour intervals
+                ax.set_yticklabels(lbl(_) for _ in ax.get_yticks())  # set the y tick labels by the label function
 
-                ax.set_yticks(np.arange(0, int(self.act.h2[-1]), 6))
-                ax.set_yticklabels(lbl(_) for _ in ax.get_yticks())
+                ax.invert_yaxis()  # invert the y axis
 
-                ax.invert_yaxis()
+            else:  # if vertical
+                locator = mdates.AutoDateLocator(minticks=1, maxticks=4)  # create a locator for the y axis.
+                ax.yaxis.set_major_formatter(mdates.ConciseDateFormatter(locator))  # set the y axis formatter to the locator
 
-            else:
+                ax.tick_params(axis='y', direction='out')  # set the y axis tick direction to out
+                ax.set_yticks(ax.get_yticks())  # set the y ticks
 
-                locator = mdates.AutoDateLocator(minticks=1, maxticks=4)
-                ax.yaxis.set_major_formatter(mdates.ConciseDateFormatter(locator))
+                ax.set_xticks(np.arange(6, int(self.act.h2[-1]), 6))  # set the x ticks by 6 hour intervals
+                ax.set_xticklabels(lbl(_) for _ in ax.get_xticks())  # set the x tick labels by the label function
 
-                ax.tick_params(axis='y', direction='out')
-                ax.set_yticks(ax.get_yticks())
+                ax.yaxis.tick_left()  # move the y axis to the left
+                ax.invert_yaxis()  # invert the y axis
 
-                ax.set_xticks(np.arange(6, int(self.act.h2[-1]), 6))
-                ax.set_xticklabels(lbl(_) for _ in ax.get_xticks())
-
-                ax.yaxis.tick_left()
-                ax.invert_yaxis()
-
-            return ax
+            return ax  # return the axis
 
         def subplot_the_pdf(self, ax, ref_ax):
-            x = self.act.h2
-            pdf = self.act.pdf
+            """ Subplot the probability density function """
+            x = self.act.h2  # hours
+            pdf = self.act.pdf  # pdf
 
-            if self.landscape:
-                ax.fill_betweenx(x, pdf, color='grey', alpha=0.3,lw=0,step='mid')
+            if self.landscape:  # if horizontal
+                ax.fill_betweenx(x, pdf, color='grey', alpha=0.3,lw=0,step='mid')  # plot the pdf
 
-                ax.spines['top'].set_visible(False)
-                ax.spines['left'].set_visible(False)
+                ax.spines['top'].set_visible(False)  # remove the top and right spines
+                ax.spines['left'].set_visible(False)  # remove the top and right spines
 
-                ax.set_xlim([0, 1])
-                ax.set_xticks(ax.get_xlim())
-                ax.set_xticklabels(ax.get_xticks())
-                ax.xaxis.set_major_formatter(FormatStrFormatter('%d'))
+                ax.set_xlim([0, 1])  # set the x limits
+                ax.set_xticks(ax.get_xlim())  # set the x ticks
+                ax.set_xticklabels(ax.get_xticks())  # set the x tick labels
+                ax.xaxis.set_major_formatter(FormatStrFormatter('%d'))  # set the x tick label format
 
-                ax.yaxis.tick_right()
-                ax.set_yticklabels([])
-                ax.set_yticks(ref_ax.get_yticks())
-                ax.set_ylim(ref_ax.get_ylim())
+                ax.yaxis.tick_right()  # move the y axis to the right
+                ax.set_yticklabels([])  # remove the y tick labels
+                ax.set_yticks(ref_ax.get_yticks())  # set the y ticks
+                ax.set_ylim(ref_ax.get_ylim())  # set the y limits
 
                 ax.invert_xaxis()
 
-            else:
-                ax.fill_between(x, pdf, color='grey', alpha=0.3,lw=0,step='mid')
+            else:  # if vertical
+                ax.fill_between(x, pdf, color='grey', alpha=0.3,lw=0,step='mid')  # plot the pdf
 
+                # remove the right and bottom spines
                 ax.spines['right'].set_visible(False)
                 ax.spines['bottom'].set_visible(False)
 
-                ax.set_ylim([0, 1])
-                ax.yaxis.tick_left()
-                ax.set_yticks(ax.get_ylim())
-                ax.set_yticklabels(ax.get_yticks())
-                ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
+                ax.set_ylim([0, 1])  # set the y limits
+                ax.yaxis.tick_left()  # move the y axis to the left
+                ax.set_yticks(ax.get_ylim())  # set the y ticks
+                ax.set_yticklabels(ax.get_yticks())  # set the y tick labels
+                ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))  # set the y tick label format
 
-                ax.xaxis.tick_top()
-                ax.set_xticklabels([])
-                ax.set_xticks(ref_ax.get_xticks())
-                ax.set_xlim(ref_ax.get_xlim())
+                ax.xaxis.tick_top()  # move the x axis to the top
+                ax.set_xticklabels([])  # remove the x tick labels
+                ax.set_xticks(ref_ax.get_xticks())  # set the x ticks
+                ax.set_xlim(ref_ax.get_xlim())  # set the x limits
 
-                ax.invert_yaxis()
+                ax.invert_yaxis()  # invert the y axis
 
             return ax
 
         def subplot_the_timeshare(self, ax, ref_ax):
-            x = self.act.dd
-            y1, y2 = self.act.timeshare
+            """ Subplot the timeshare """
+            x = self.act.dd  # days
+            y1, y2 = self.act.timeshare  # offline and sleep times
 
-            if self.landscape:
-                ax.fill_between(x, y1, color='grey', alpha=0.3, lw=0, step='mid')
-                ax.fill_between(x, y2, color='k', alpha=0.5, lw=0, step='mid')
+            if self.landscape:  # if horizontal
+                ax.fill_between(x, y1, color='grey', alpha=0.3, lw=0, step='mid')  # plot the offline time
+                ax.fill_between(x, y2, color='k', alpha=0.5, lw=0, step='mid')  # plot the sleep time
 
-                ax.axes.axhline(8, color='k', linestyle='--', lw=0.75)
+                ax.axes.axhline(8, color='k', linestyle='--', lw=0.75)  # plot the 8 hour mark
 
-                ax.spines['right'].set_visible(False)
-                ax.spines['bottom'].set_visible(False)
+                ax.spines['right'].set_visible(False)  # remove the right and bottom spines
+                ax.spines['bottom'].set_visible(False)  # remove the right and bottom spines
 
-                ax.set_yticks([0, 8, 24])
-                ax.set_ylim(0, 24)
+                ax.set_yticks([0, 8, 24])  # set the yticks
+                ax.set_ylim(0, 24)  # set the y limits
 
-                ax.xaxis.tick_top()
-                ax.set_xticklabels([])
-                ax.set_xticks(ref_ax.get_xticks())
-                ax.set_xlim(ref_ax.get_xlim())
+                ax.xaxis.tick_top()  # move the x axis to the top
+                ax.set_xticklabels([])  # remove the x tick labels
+                ax.set_xticks(ref_ax.get_xticks())  # set the x ticks
+                ax.set_xlim(ref_ax.get_xlim())  # set the x limits
 
-                ax.invert_yaxis()
+                ax.invert_yaxis()  # invert the y axis
 
-            else:
-                ax.fill_betweenx(x, y1, color='grey', alpha=0.3, lw=0, step='mid')
-                ax.fill_betweenx(x, y2, color='k', alpha=0.5, lw=0, step='mid')
+            else:  # if vertical
+                ax.fill_betweenx(x, y1, color='grey', alpha=0.3, lw=0, step='mid')  # plot the offline time
+                ax.fill_betweenx(x, y2, color='k', alpha=0.5, lw=0, step='mid')  # plot the sleep time
 
-                ax.axes.axvline(8, color='k', linestyle='--', lw=0.75)
+                ax.axes.axvline(8, color='k', linestyle='--', lw=0.75)  # plot the 8 hour mark
     
-                ax.spines['left'].set_visible(False)
-                ax.spines['top'].set_visible(False)
+                ax.spines['left'].set_visible(False)  # remove the left and top spines
+                ax.spines['top'].set_visible(False)  # remove the left and top spines
 
-                ax.set_xticks([0, 8, 24])
-                ax.set_xlim(0, 24)
+                ax.set_xticks([0, 8, 24])  # set the xticks
+                ax.set_xlim(0, 24)  # set the x limits
 
-                ax.yaxis.tick_right()
-                ax.set_yticklabels([])
-                ax.set_yticks(ref_ax.get_yticks())
-                ax.set_ylim(ref_ax.get_ylim())
+                ax.yaxis.tick_right()  # move the y axis to the right
+                ax.set_yticklabels([])  # remove the y tick labels
+                ax.set_yticks(ref_ax.get_yticks())  # set the y ticks
+                ax.set_ylim(ref_ax.get_ylim())  # set the y limits
 
-                ax.invert_xaxis()
+                ax.invert_xaxis()  # invert the x axis
 
-            return ax
+            return ax  # return the axis
 
         def plot_subplot_titles(self, ax, fig_ax):
+            """ Plot the subplot titles """
             p = self.plot_params
 
-            steps = int(60/(self.freq_no/(24)))
+            steps = int(60/(self.freq_no/(24)))  # steps in minutes
 
-            if self.landscape:
-                ax.text(1, 1+p['hspace']/2, p['labels'][0], ha='right')
-                ax.text(1, p['hspace'], p['labels'][1], ha='right')
+            if self.landscape:  # if horizontal
+                ax.text(1, 1+p['hspace']/2, p['labels'][0], ha='right')  # plot the pdf label
+                ax.text(1, p['hspace'], p['labels'][1], ha='right')  # plot the sleep label
 
+                # prepare the title and subtitle
                 s = ("Approximate sleep-wake periods, generated from time stamped "
                     "internet browser searches\nbetween {:%d-%b-%Y} and {:%d-%b-%Y}. "
                     "Window steps of {} minutes.".format(self.act.dd[0], self.act.dd[-1], steps))
 
-            else:
-                ax.text(1, 1-p['hspace'], p['labels'][0], ha='right')
-                ax.text(1, p['hspace']/2, p['labels'][1], ha='right')
+            else:  # if vertical
+                ax.text(1, 1-p['hspace'], p['labels'][0], ha='right')  # plot the pdf label
+                ax.text(1, p['hspace']/2, p['labels'][1], ha='right')  # plot the sleep label
 
+                # prepare the title and subtitle
                 s = ("Approximate sleep-wake periods, generated from time stamped "
                     "internet browser searches between {:%d-%b-%Y} and {:%d-%b-%Y}. "
                     "Window steps of {} minutes.".format(self.act.dd[0], self.act.dd[-1], steps))
 
+            # plot the title and subtitle
             fig_ax.text(x=0, y=1.1, s='Double-Plotted Online Actogram',
                      ha='left', va='bottom', fontweight='bold', wrap=True)
             fig_ax.text(0, 1.09, s=s, ha='left', va='top', wrap=True)
 
+            # remove the axis
             ax.axis('off')
 
     class ExportData:
+        """ Export the processed data """
         def __init__(self, act, plot):
             super().__init__()
             self.act = act
@@ -700,10 +723,11 @@ class Actography:
             self.__main__()
 
         def __main__(self):
-            if self.act.show: self.export_actogram()
-            if self.act.save_csv: self.export_csv('visits')
+            if self.act.show: self.export_actogram()  # export the actogram as a png
+            if self.act.save_csv: self.export_csv('visits')  # or export the actogram as a csv
 
         def export_actogram(self):
+            """ Export the actogram as a png """
             fig = self.plot.fig
 
             orientation = 'horizontal' if self.act.landscape else 'vertical'
@@ -711,6 +735,7 @@ class Actography:
                         dt.today().date().isoformat() + '.png', dpi=self.plot.DPI)
 
         def export_csv(self, filename):
+            """ Export the actogram as a csv """
             self.act.df.to_csv('temp.csv')
 
             size_most_recent = 0
@@ -727,6 +752,7 @@ class Actography:
 
 ## Main entry point (with arguments parser)
 def main(argv: Sequence[str] | None = None) -> int:
+    """ Main entry point for the command line interface """
     if argv is None: # if argv is empty, fetch from the commandline
         argv = sys.argv[1:]
     elif isinstance(argv, _str): # else if argv is supplied but it's a simple string, we need to parse it to a list of arguments before handing to argparse or any other argument parser
@@ -758,6 +784,6 @@ This will output result files (a picture of the actogram plot and a csv file wit
     return 0
 
 
-## If called from commandline
+## Entrypoint if called from commandline
 if __name__ == '__main__':
     main(sys.argv)
