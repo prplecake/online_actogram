@@ -4,19 +4,27 @@
 🌐🏃Use your browser's history as a novel instantaneous mass screening tool for 🌙🛌sleep patterns & maybe disorders!
 
 ## Description
-Python 3 tool to generate an online actogram from web browsers history files. Supports various browsers including Google Chrome, Mozilla Firefox and Safari history files.
+Python 3 tool to generate an online actogram from web browsers history files. Supports various browsers including Google Chrome, Mozilla Firefox and Safari history files (full list of supported browsers [here](https://browser-history.readthedocs.io/en/latest/browsers.html)).
 
 To screen sleep-wake patterns and disorders, all such tools require that the user wear an actigraphic device or record themselves a sleep diary. The limitation is that first there needs to be a suspicion of a sleep disorder to request such data from a subject, and secondly it takes weeks or even months of rigorously acquired data by a very compliant subject, for the sleep clinician to then be able to interpret if there is any potential sleep disorder.
 
 The web actogram is the first pseudo-actigraphic tool that can provide an instantaneous estimation of the user’s sleep-wake pattern, aka actogram, by inferring an actogram from the browser’s history. This could allow for mass screening of sleep-wake patterns and disorders via the simple and fast installation of an app.
 
+Multiple web browsers are supported, and the histories of all supported browsers will be merged automatically, and include all profiles installed in all browsers.
+
+Example plots: horizontal (landscape) mode:
+![](actograms/example_actogram_horizontal_2022-03-31.png)
+
+Vertical (portrait) mode:
+![](actograms/example_actogram_vertical_2022-01-25.png)
+
 The limitations are however as follows:
 
-* The sleep patterns are only very indirectly estimated, only the wakefulness patterns can be considered reliable.
-* The web actogram reliability depends on whether the user is an avid user of web browsers: they must use their web browsers on a daily basis. They do not need to use their browser all the time however, but they need to use it regularly, on a daily basis, so that we can estimate their wakefulness period. So regularity is necessary, not quantity. But even if quantity is not necessary, the more avid use of browsers, the more datapoints and the more reliable the estimate will be.
-* The user must use solely one browser, otherwise it won’t work (in the future we will merge multiple browsers’ histories).
+* The sleep patterns - the main measure of interest - are only very indirectly estimated, as this tool is estimating the wakefulness pattern, and even that is only partially covered since this tool analyzes internet desktop browsers histories (not whole computer usage history nor mobile nor user's activity the whole day).
+* The web actogram reliability depends on whether the user is an avid user of web browsers: they must use their web browsers on an almost daily basis. They do not need to use their browser all the time however, but they need to use it regularly, so that we can estimate their wakefulness period. So regularity is necessary, not quantity. But even if quantity is not necessary, the more avid use of browsers, the more datapoints and the more reliable the estimate will be.
 * The user must primarily use a web browser on a computer (not on a smartphone - this will be implemented in the future).
 * The more data over a longer period, the more precisely and robust the pattern will appear.
+* If there are multiple users on the same desktop computer, the result will be unreliable, as the tool will currently merge all profiles histories data in one and hence merge the usage data from different users.
 
 How the actogram is plotted was inspired by [this UCSD tutorial](https://ccb.ucsd.edu/the-bioclock-studio/education-resources/basics/part2.html) and [this scientific paper](https://doi.org/10.1186/1741-7007-8-93).
 
