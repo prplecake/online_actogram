@@ -7,7 +7,25 @@
 
 ## Install & Quickstart
 
-First you need a modern Python 3 interpreter, such as [Miniconda3](https://docs.conda.io/en/latest/miniconda.html#latest-miniconda-installer-links).
+### Install with a precompiled binary
+
+This is the easiest way to install if you don't use Python.
+
+Precompiled binaries are available for Windows 64-bits (MacOS and Linux in the future too).
+
+To download, just get the .exe file of the [latest release](https://github.com/Circadiaware/webactogram/releases/latest).
+
+Note: if you cannot find the .exe download on your computer, make sure that you explicitly accepted the download in your browser (eg, Chrome), as it may block it for safety and require you to go to the browser's downloads tab and accept manually the download (there is absolutely no risk, but if you are paranoid you can use the Python module instead, it's the exact same software).
+
+Then just double-click on `webactogram_vX.Y.Z.exe`, it will autogenerate the actogram and then show it in a pop-up window.
+
+On Windows, you may need to manually pass the Windows Defender SmartScreen like this:
+
+![](res/windows_defender_smartscreen.png)
+
+### Install using Python
+
+First you need a modern Python 3 interpreter (Python > 3.7), such as [Miniconda3](https://docs.conda.io/en/latest/miniconda.html#latest-miniconda-installer-links).
 
 Then, install WebActogram with:
 
@@ -26,11 +44,18 @@ More options, such as the sampling frequency (and hence granularity of the actog
 ```webactogram --help```
 
 ## Description
-Python 3 tool to generate an online actogram from web browsers history files. Supports various browsers including Google Chrome, Mozilla Firefox and Safari history files (full list of supported browsers [here](https://browser-history.readthedocs.io/en/latest/browsers.html)).
+WebActogram is a tool that generates an activity graph, called an online actogram, from web browsers history files. It supports various browsers including Google Chrome, Mozilla Firefox and Safari history files (full list of supported browsers [here](https://browser-history.readthedocs.io/en/latest/browsers.html)).
 
-To screen sleep-wake patterns and disorders, all such tools require that the user wear an actigraphic device or record themselves a sleep diary. The limitation is that first there needs to be a suspicion of a sleep disorder to request such data from a subject, and secondly it takes weeks or even months of rigorously acquired data by a very compliant subject, for the sleep clinician to then be able to interpret if there is any potential sleep disorder.
+To screen sleep-wake patterns and disorders, all sleep screening tools require that the user either manually record a sleep diary or wears an actigraphic device or participate in an even more cumbersome constant routine study with melatonin sampling under always dark conditions.
 
-The web actogram is the first pseudo-actigraphic tool that can provide an instantaneous estimation of the user’s sleep-wake pattern, aka actogram, by inferring an actogram from the browser’s history. This could allow for mass screening of sleep-wake patterns and disorders via the simple and fast installation of an app.
+The main limitations of these approaches are:
+
+1. the upfront cost (in money and/or time), as there needs to be a suspicion of a sleep disorder to request such data from a subject or medical tests (especially melatonin sampling),
+2. there is a big latency between the time the user first suspects they may have a sleep disorder and the time they have enough data to get diagnosed, as it takes weeks or even months of rigorously acquired data by a very compliant subject for the sleep clinician to then be able to interpret if there is any potential sleep disorder.
+
+Both of these issues make current sleep disorders diagnostic procedures very poor screening procedures, as the hurdles to get enough data to assess whether there is any sleep disorder at all is just too high for most people and is likely causing a big dropout rate. [Behavioral scales are also unfit for circadian rhythm disorders diagnosis](https://pubmed.ncbi.nlm.nih.gov/18041481/).
+
+The web actogram is the first tool that can provide an instantaneous estimation of the user’s sleep-wake pattern, aka actogram, by being a pseudo-actigraphic tool that infers an actogram from the browser’s history. This could allow for mass screening of sleep-wake patterns and disorders via the simple and fast installation of an app.
 
 Multiple web browsers are supported, and the histories of all supported browsers will be merged automatically, and include all profiles installed in all browsers.
 
