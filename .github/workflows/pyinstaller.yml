@@ -2,7 +2,7 @@
 
 name: pyinstaller
 
-on:
+on:  # TODO: instead of on push, build on release, to ease strain on Github actions runners.
   push:
     branches:
       - master # $default-branch only works in Workflows templates, not in Workflows, see https://stackoverflow.com/questions/64781462/github-actions-default-branch-variable
