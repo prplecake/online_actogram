@@ -111,7 +111,7 @@ Where:
 
 ## Privacy statement
 
-The only data that is extracted from your browsers usage is the datetime of visited pages from the browsers histories. The URLs is not extracted, nor any other information. No data is ever leaving your computer.
+The only data that is extracted from your browsers usage is the datetime of visited pages from the browsers histories. The URLs are not extracted, nor any other information than datetimes. No data is ever leaving your computer.
 
 ## Authors
 
